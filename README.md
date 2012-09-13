@@ -14,7 +14,7 @@ extension, it dynamically links to the php dll exporting the libxml2 symbols.
 In order to support pre Win2K systems, libxslt is built without crypto
 support:
 
-  cscript configure.js lib=”&lt;path to iconv lib dir&gt;;&lt;path to libxml2
+    cscript configure.js lib=”&lt;path to iconv lib dir&gt;;&lt;path to libxml2
 lib dir&gt;” include=”&lt;path to iconv header dir&gt;;&lt;path to libxml2 header dir&gt;”
 crypto=no
 
