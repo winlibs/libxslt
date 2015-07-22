@@ -260,7 +260,7 @@ xsltDocumentFunction(xmlXPathParserContextPtr ctxt, int nargs)
         obj = valuePop(ctxt);
         ret = xmlXPathNewNodeSet(NULL);
 
-        if (obj->nodesetval) {
+        if ((obj != NULL) && obj->nodesetval) {
             for (i = 0; i < obj->nodesetval->nodeNr; i++) {
                 valuePush(ctxt,
                           xmlXPathNewNodeSet(obj->nodesetval->nodeTab[i]));
@@ -280,7 +280,8 @@ xsltDocumentFunction(xmlXPathParserContextPtr ctxt, int nargs)
             }
         }
 
-        xmlXPathFreeObject(obj);
+        if (obj != NULL)
+            xmlXPathFreeObject(obj);
         if (obj2 != NULL)
             xmlXPathFreeObject(obj2);
         valuePush(ctxt, ret);
@@ -659,6 +660,7 @@ xsltFormatNumberFunction(xmlXPathParserContextPtr ctxt, int nargs)
  */
 void
 xsltGenerateIdFunction(xmlXPathParserContextPtr ctxt, int nargs){
+    static char base_address;
     xmlNodePtr cur = NULL;
     xmlXPathObjectPtr obj = NULL;
     long val;
@@ -715,7 +717,7 @@ xsltGenerateIdFunction(xmlXPathParserContextPtr ctxt, int nargs){
     if (obj)
         xmlXPathFreeObject(obj);
 
-    val = (long)((char *)cur - (char *)doc);
+    val = (long)((char *)cur - (char *)&base_address);
     if (val >= 0) {
       sprintf((char *)str, "idp%ld", val);
     } else {

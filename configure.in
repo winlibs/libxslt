@@ -11,11 +11,11 @@ dnl libexslt is an extension
 dnl
 LIBXSLT_MAJOR_VERSION=1
 LIBXSLT_MINOR_VERSION=1
-LIBXSLT_MICRO_VERSION=27
+LIBXSLT_MICRO_VERSION=28
 PACKAGE=libxslt
 LIBEXSLT_MAJOR_VERSION=0
 LIBEXSLT_MINOR_VERSION=8
-LIBEXSLT_MICRO_VERSION=16
+LIBEXSLT_MICRO_VERSION=17
 LIBXML_REQUIRED_VERSION=2.6.27
 
 
@@ -130,13 +130,16 @@ dnl
 dnl if the system support linker version scripts for symbol versioning
 dnl then add it
 dnl
-VERSION_SCRIPT_FLAGS=
-$(/usr/bin/ld --help 2>&1 | grep -- --version-script >/dev/null) && \
+AC_MSG_CHECKING([how to pass version script to the linker ($LD)])
+VERSION_SCRIPT_FLAGS=none
+if $LD --help 2>&1 | grep "version-script" >/dev/null 2>/dev/null; then
     VERSION_SCRIPT_FLAGS=-Wl,--version-script=
-test "`uname`" = "SunOS" && \
+elif $LD --help 2>&1 | grep "M mapfile" >/dev/null 2>/dev/null; then
     VERSION_SCRIPT_FLAGS="-Wl,-M -Wl,"
+fi
+AC_MSG_RESULT([$VERSION_SCRIPT_FLAGS])
 AC_SUBST(VERSION_SCRIPT_FLAGS)
-AM_CONDITIONAL([USE_VERSION_SCRIPT], [test -n "$VERSION_SCRIPT_FLAGS"])
+AM_CONDITIONAL([USE_VERSION_SCRIPT], [test "$VERSION_SCRIPT_FLAGS" != none])
 
 dnl Look for pthread.h, needed for testThreads
 case $host in
