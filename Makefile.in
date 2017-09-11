@@ -326,6 +326,9 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
+PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 PYTHON = @PYTHON@
 PYTHONSODV = @PYTHONSODV@
 PYTHON_INCLUDES = @PYTHON_INCLUDES@
@@ -1059,9 +1062,9 @@ dummy:
 
 tests: dummy
 	@echo '## Running the regression test suite'
-	@(cd tests ; $(MAKE) tests)
-	@(cd xsltproc ; $(MAKE) tests)
-	@(if [ "$(PYTHON_SUBDIR)" != "" ] ; then cd python ; $(MAKE) tests ; fi)
+	@(cd tests ; $(MAKE) -s tests)
+	@(cd xsltproc ; $(MAKE) -s tests)
+	@(if [ "$(PYTHON_SUBDIR)" != "" ] ; then cd python ; $(MAKE) -s tests ; fi)
 
 valgrind:
 	@echo '## Running the regression tests under Valgrind'

@@ -457,9 +457,8 @@ xsltMessage(xsltTransformContextPtr ctxt, xmlNodePtr node, xmlNodePtr inst) {
 	} else if (xmlStrEqual(prop, (const xmlChar *)"no")) {
 	    terminate = 0;
 	} else {
-	    error(errctx,
+	    xsltTransformError(ctxt, NULL, inst,
 		"xsl:message : terminate expecting 'yes' or 'no'\n");
-	    ctxt->state = XSLT_STATE_ERROR;
 	}
 	xmlFree(prop);
     }
@@ -622,7 +621,8 @@ xsltPrintErrorContext(xsltTransformContextPtr ctxt,
     void *errctx = xsltGenericErrorContext;
 
     if (ctxt != NULL) {
-	ctxt->state = XSLT_STATE_ERROR;
+        if (ctxt->state == XSLT_STATE_OK)
+	    ctxt->state = XSLT_STATE_ERROR;
 	if (ctxt->error != NULL) {
 	    error = ctxt->error;
 	    errctx = ctxt->errctx;
@@ -715,7 +715,8 @@ xsltTransformError(xsltTransformContextPtr ctxt,
     char * str;
 
     if (ctxt != NULL) {
-	ctxt->state = XSLT_STATE_ERROR;
+        if (ctxt->state == XSLT_STATE_OK)
+	    ctxt->state = XSLT_STATE_ERROR;
 	if (ctxt->error != NULL) {
 	    error = ctxt->error;
 	    errctx = ctxt->errctx;
@@ -1248,6 +1249,8 @@ xsltDefaultSortFunction(xsltTransformContextPtr ctxt, xmlNodePtr *sorts,
 			if (res[j] == NULL) {
 			    if (res[j+incr] != NULL)
 				tst = 1;
+			} else if (res[j+incr] == NULL) {
+			    tst = -1;
 			} else {
 			    if (numb) {
 				/* We make NaN smaller than number in

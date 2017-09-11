@@ -274,6 +274,9 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
+PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 PYTHON = @PYTHON@
 PYTHONSODV = @PYTHONSODV@
 PYTHON_INCLUDES = @PYTHON_INCLUDES@
@@ -742,7 +745,7 @@ xsltproc.dv: xsltproc.o
 tests: testThreads
 	@echo > .memdump
 	@echo '## Running testThreads'
-	@($(CHECKER) ./testThreads ; grep "MORY ALLO" .memdump  | grep -v "MEMORY ALLOCATED : 0" || true)
+	@($(CHECKER) ./testThreads > /dev/null; grep "MORY ALLO" .memdump  | grep -v "MEMORY ALLOCATED : 0" || true)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

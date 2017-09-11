@@ -268,6 +268,9 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
+PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 PYTHON = @PYTHON@
 PYTHONSODV = @PYTHONSODV@
 PYTHON_INCLUDES = @PYTHON_INCLUDES@
@@ -367,7 +370,7 @@ CLEANFILES = *.res
 @WITH_MODULES_TRUE@xmlsoft_org_xslt_testplugin_la_CFLAGS = -DMODULE_COMPILE $(LIBXML_CFLAGS) $(LIBXSLT_CFLAGS)
 @WITH_MODULES_TRUE@xmlsoft_org_xslt_testplugin_la_SOURCES = testplugin.c
 @WITH_MODULES_TRUE@xmlsoft_org_xslt_testplugin_la_LIBADD = $(top_builddir)/libxslt/libxslt.la $(EXTRA_LIBS)
-@WITH_MODULES_TRUE@xmlsoft_org_xslt_testplugin_la_LDFLAGS = -module -avoid-version -rpath $(plugindir)
+@WITH_MODULES_TRUE@xmlsoft_org_xslt_testplugin_la_LDFLAGS = $(WIN32_EXTRA_LDFLAGS) -module -avoid-version -rpath $(plugindir)
 all: all-am
 
 .SUFFIXES:

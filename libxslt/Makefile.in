@@ -131,7 +131,8 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(man3dir)" \
 	"$(DESTDIR)$(xsltincdir)" "$(DESTDIR)$(xsltincdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-libxslt_la_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+libxslt_la_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 am_libxslt_la_OBJECTS = attrvt.lo xslt.lo xsltlocale.lo xsltutils.lo \
 	pattern.lo templates.lo variables.lo keys.lo numbers.lo \
 	extensions.lo extra.lo functions.lo namespaces.lo imports.lo \
@@ -303,6 +304,9 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
+PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 PYTHON = @PYTHON@
 PYTHONSODV = @PYTHONSODV@
 PYTHON_INCLUDES = @PYTHON_INCLUDES@
@@ -449,7 +453,7 @@ nodist_libxslt_la_SOURCES = \
 
 @USE_VERSION_SCRIPT_FALSE@LIBXSLT_VERSION_SCRIPT = 
 @USE_VERSION_SCRIPT_TRUE@LIBXSLT_VERSION_SCRIPT = $(VERSION_SCRIPT_FLAGS)$(srcdir)/libxslt.syms
-libxslt_la_LIBADD = $(LIBXML_LIBS) $(EXTRA_LIBS)
+libxslt_la_LIBADD = $(LIBXML_LIBS) $(EXTRA_LIBS) $(M_LIBS)
 libxslt_la_LDFLAGS = \
 		$(WIN32_EXTRA_LDFLAGS)			\
 		$(LIBXSLT_VERSION_SCRIPT)		\
