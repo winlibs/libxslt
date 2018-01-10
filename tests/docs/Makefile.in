@@ -93,7 +93,7 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = tests/docs
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.in
+am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
@@ -196,7 +196,6 @@ LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
-MV = @MV@
 M_LIBS = @M_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
@@ -225,12 +224,10 @@ PYTHON_SUBDIR = @PYTHON_SUBDIR@
 PYTHON_VERSION = @PYTHON_VERSION@
 RANLIB = @RANLIB@
 RELDATE = @RELDATE@
-RM = @RM@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
-TAR = @TAR@
 THREAD_LIBS = @THREAD_LIBS@
 VERSION = @VERSION@
 VERSION_SCRIPT_FLAGS = @VERSION_SCRIPT_FLAGS@
@@ -249,8 +246,6 @@ XSLTPROCDV = @XSLTPROCDV@
 XSLT_INCLUDEDIR = @XSLT_INCLUDEDIR@
 XSLT_LIBDIR = @XSLT_LIBDIR@
 XSLT_LIBS = @XSLT_LIBS@
-XSLT_LOCALE_WINAPI = @XSLT_LOCALE_WINAPI@
-XSLT_LOCALE_XLOCALE = @XSLT_LOCALE_XLOCALE@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -504,9 +499,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu tests/docs/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign tests/docs/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu tests/docs/Makefile
+	  $(AUTOMAKE) --foreign tests/docs/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \

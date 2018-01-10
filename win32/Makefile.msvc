@@ -51,7 +51,7 @@ CPPFLAGS = /nologo
 
 # The compiler and its options.
 CC = cl.exe
-CFLAGS = /nologo /D "WIN32" /D "_WINDOWS" /D "_MBCS" /W3 $(CRUNTIME) /D "_REENTRANT"
+CFLAGS = /nologo /D "_WINDOWS" /D "_MBCS" /W3 /wd4244 /wd4267 $(CRUNTIME) /D "_REENTRANT"
 CFLAGS = $(CFLAGS) /I$(BASEDIR) /I$(XSLT_SRCDIR) /I$(INCPREFIX)
 CFLAGS = $(CFLAGS) /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE
 
@@ -59,7 +59,7 @@ CFLAGS = $(CFLAGS) /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE
 LD = link.exe
 LDFLAGS = /nologo
 LDFLAGS = $(LDFLAGS) /LIBPATH:$(BINDIR) /LIBPATH:$(LIBPREFIX)
-LIBS = 
+LIBS = wsock32.lib
 
 # The archiver and its options.
 AR = lib.exe
@@ -224,7 +224,7 @@ $(XSLT_INTDIR_A) :
 
 # An implicit rule for static libxslt compilation.
 {$(XSLT_SRCDIR)}.c{$(XSLT_INTDIR_A)}.obj::
-	$(CC) $(CFLAGS) /D "LIBXSLT_STATIC" \
+	$(CC) $(CFLAGS) /D "LIBXML_STATIC" /D "LIBXSLT_STATIC" \
 		/Fo$(XSLT_INTDIR_A)\ /c $<
 
 # Compiles libxslt source. Uses the implicit rule for commands.
@@ -270,7 +270,7 @@ $(EXSLT_INTDIR_A) :
 
 # An implicit rule for static libexslt compilation.
 {$(EXSLT_SRCDIR)}.c{$(EXSLT_INTDIR_A)}.obj::
-	$(CC) /D "LIBXSLT_STATIC" /D "LIBEXSLT_STATIC" \
+	$(CC) /D "LIBXML_STATIC" /D "LIBXSLT_STATIC" /D "LIBEXSLT_STATIC" \
 		/I$(EXSLT_SRCDIR) $(CFLAGS) /Fo$(EXSLT_INTDIR_A)\ /c $<
 
 # Compiles libxslt source. Uses the implicit rule for commands.
@@ -309,7 +309,7 @@ $(UTILS_INTDIR) :
 # An implicit rule for xsltproc and friends.
 APPLIBS = $(LIBS)
 !if "$(STATIC)" == "1"
-APPLIBS = $(LIBS) libxml2.lib
+APPLIBS = $(LIBS) libxml2_a.lib
 !if "$(WITH_ICONV)" == "1"
 APPLIBS = $(APPLIBS) iconv.lib
 !endif
@@ -317,7 +317,7 @@ APPLIBS = $(APPLIBS) iconv.lib
 APPLIBS = $(APPLIBS) zlib.lib
 !endif
 {$(UTILS_SRCDIR)}.c{$(BINDIR)}.exe:
-	$(CC) /D "LIBXSLT_STATIC" /D "LIBEXSLT_STATIC" \
+	$(CC) /D "LIBXML_STATIC" /D "LIBXSLT_STATIC" /D "LIBEXSLT_STATIC" \
 		$(CFLAGS) /Fo$(UTILS_INTDIR)\ /c $< 
 	$(LD) $(LDFLAGS) /OUT:$@ $(XSLT_A) $(EXSLT_A) $(APPLIBS) $(UTILS_INTDIR)\$(<B).obj
 	@$(_VC_MANIFEST_EMBED_EXE)

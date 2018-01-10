@@ -21,6 +21,7 @@
 #include "libxslt-py.h"
 
 #include <stdio.h>
+#include <stddef.h>
 
 #if (defined(_MSC_VER) || defined(__MINGW32__)) && !defined(vsnprintf)
 #define vsnprintf(b,c,f,a) _vsnprintf(b,c,f,a)
@@ -105,7 +106,7 @@ libxslt_xsltGetTransformContextHashCode(PyObject *self ATTRIBUTE_UNUSED, PyObjec
         return NULL;
 
     tctxt =  (xsltTransformContextPtr) PytransformCtxt_Get(py_tctxt);
-    hash_code = (long) tctxt;
+    hash_code = (ptrdiff_t) tctxt;
 
     ret = PyInt_FromLong(hash_code);
     return ret;
@@ -142,7 +143,7 @@ libxslt_xsltGetStylesheetHashCode(PyObject *self ATTRIBUTE_UNUSED, PyObject *arg
         return NULL;
 
     style =  (xsltStylesheetPtr) Pystylesheet_Get(py_style);
-    hash_code = (long) style;
+    hash_code = (ptrdiff_t) style;
 
     ret = PyInt_FromLong(hash_code);
     return ret;
@@ -857,7 +858,7 @@ libxslt_xsltSaveResultToString(PyObject *self ATTRIBUTE_UNUSED, PyObject *args) 
 static PyObject *libxslt_xsltPythonErrorFuncHandler = NULL;
 static PyObject *libxslt_xsltPythonErrorFuncCtxt = NULL;
 
-static void
+static void LIBXSLT_ATTR_FORMAT(2,3)
 libxslt_xsltErrorFuncHandler(void *ctx ATTRIBUTE_UNUSED, const char *msg,
                            ...)
 {
@@ -1180,7 +1181,6 @@ extern void initlibxml2mod(void);
 
 void initlibxsltmod(void) {
     static int initialized = 0;
-    PyObject *m;
 
 #ifdef MERGED_MODULES
     initlibxml2mod();
@@ -1188,7 +1188,7 @@ void initlibxsltmod(void) {
 
     if (initialized != 0)
 	return;
-    m = Py_InitModule((char *)"libxsltmod", libxsltMethods);
+    Py_InitModule((char *)"libxsltmod", libxsltMethods);
     initialized = 1;
     /*
      * Specific XSLT initializations

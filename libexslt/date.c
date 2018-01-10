@@ -22,7 +22,7 @@
 #define IN_LIBEXSLT
 #include "libexslt/libexslt.h"
 
-#if defined(WIN32) && !defined (__CYGWIN__) && (!__MINGW32__)
+#if defined(_WIN32) && !defined (__CYGWIN__) && (!__MINGW32__)
 #include <win32config.h>
 #else
 #include "config.h"
@@ -808,8 +808,9 @@ exsltDateCurrent (void)
     gmtime_r(&secs, &gmTm);
 #else
     tb = gmtime(&secs);
-    if (tb != NULL)
-        gmTm = *tb;
+    if (tb == NULL)
+        return NULL;
+    gmTm = *tb;
 #endif
     ret->tz_flag = 0;
 #if 0
