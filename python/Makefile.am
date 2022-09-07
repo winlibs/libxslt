@@ -19,7 +19,7 @@ libxsltmod_la_CPPFLAGS = \
 	-I$(top_srcdir)/libxslt \
 	-I$(top_srcdir) \
 	-I../libexslt \
-	$(PYTHON_CFLAGS) $(LIBXML_CFLAGS)
+	$(PYTHON_CFLAGS) $(LIBXML_CFLAGS) $(LIBXSLT_CFLAGS)
 libxsltmod_la_SOURCES = libxslt.c types.c
 nodist_libxsltmod_la_SOURCES = libxslt-py.c
 libxsltmod_la_LIBADD = \
@@ -31,7 +31,7 @@ libxsltmod_la_LDFLAGS = -module -avoid-version
 libxslt.py: $(srcdir)/libxsl.py libxsltclass.py
 	cat $(srcdir)/libxsl.py libxsltclass.py > $@
 
-python_PYTHON = libxslt.py
+nodist_python_PYTHON = libxslt.py
 
 GENERATE = generator.py
 API_DESC = $(top_srcdir)/doc/libxslt-api.xml $(srcdir)/libxslt-python-api.xml
@@ -57,4 +57,7 @@ endif
 tests test: all
 	cd tests && $(MAKE) tests
 
-CLEANFILES = $(GENERATED) *.o libxslt.so *.pyc libxslt.py gen_prog
+CLEANFILES = $(GENERATED) *.pyc libxslt.py gen_prog
+
+clean-local:
+	rm -rf __pycache__
