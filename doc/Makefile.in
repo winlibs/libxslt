@@ -13,6 +13,7 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -89,10 +90,14 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = doc
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
+DIST_COMMON = $(srcdir)/Makefile.am $(nobase_dist_doc_DATA) \
+	$(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
@@ -152,9 +157,10 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 man1dir = $(mandir)/man1
-am__installdirs = "$(DESTDIR)$(man1dir)"
+am__installdirs = "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)"
 NROFF = nroff
-MANS = $(man_MANS)
+MANS = $(dist_man_MANS)
+DATA = $(nobase_dist_doc_DATA)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 am__recursive_targets = \
@@ -183,7 +189,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 DIST_SUBDIRS = $(SUBDIRS)
-am__DIST_COMMON = $(srcdir)/Makefile.in
+am__DIST_COMMON = $(dist_man_MANS) $(srcdir)/Makefile.in
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 am__relativize = \
   dir0=`pwd`; \
@@ -242,7 +248,6 @@ EXSLT_PRIVATE_LIBS = @EXSLT_PRIVATE_LIBS@
 EXTRA_LIBS = @EXTRA_LIBS@
 FGREP = @FGREP@
 GREP = @GREP@
-HTML_DIR = @HTML_DIR@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -260,6 +265,7 @@ LIBEXSLT_VERSION_NUMBER = @LIBEXSLT_VERSION_NUMBER@
 LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
 LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
 LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
+LIBM = @LIBM@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -280,10 +286,10 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
+MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
-M_LIBS = @M_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
@@ -303,11 +309,11 @@ PKG_CONFIG = @PKG_CONFIG@
 PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
 PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 PYTHON = @PYTHON@
-PYTHONSODV = @PYTHONSODV@
-PYTHON_INCLUDES = @PYTHON_INCLUDES@
+PYTHON_CFLAGS = @PYTHON_CFLAGS@
+PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
 PYTHON_LIBS = @PYTHON_LIBS@
-PYTHON_SITE_PACKAGES = @PYTHON_SITE_PACKAGES@
-PYTHON_SUBDIR = @PYTHON_SUBDIR@
+PYTHON_PLATFORM = @PYTHON_PLATFORM@
+PYTHON_PREFIX = @PYTHON_PREFIX@
 PYTHON_VERSION = @PYTHON_VERSION@
 RANLIB = @RANLIB@
 RELDATE = @RELDATE@
@@ -329,7 +335,6 @@ WITH_XSLT_DEBUG = @WITH_XSLT_DEBUG@
 XMLLINT = @XMLLINT@
 XML_CONFIG = @XML_CONFIG@
 XSLTPROC = @XSLTPROC@
-XSLTPROCDV = @XSLTPROCDV@
 XSLT_INCLUDEDIR = @XSLT_INCLUDEDIR@
 XSLT_LIBDIR = @XSLT_LIBDIR@
 XSLT_LIBS = @XSLT_LIBS@
@@ -375,9 +380,12 @@ mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
+pkgpyexecdir = @pkgpyexecdir@
+pkgpythondir = @pkgpythondir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+pyexecdir = @pyexecdir@
 pythondir = @pythondir@
 runstatedir = @runstatedir@
 sbindir = @sbindir@
@@ -390,158 +398,44 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = devhelp EXSLT/devhelp
 
-# The top-level SGML file.
-DOC_MAIN_XML_FILE = libxslt.xml
-
-# The directory containing the source code (if it contains documentation).
-DOC_SOURCE_DIR = ..
-
 # A file in win32 depends upon two of the doc files
 WIN32_DIR = $(top_srcdir)/win32
-PAGES = API.html bugs.html contribs.html FAQ.html docs.html \
-         downloads.html help.html index.html intro.html news.html \
-	 xsltproc2.html
-
-EPAGES = EXSLT/bugs.html EXSLT/docs.html EXSLT/downloads.html \
-	 EXSLT/help.html EXSLT/index.html EXSLT/intro.html
-
-APIPAGES = APIconstructors.html APIfiles.html APIfunctions.html \
-	 APIsymbols.html APIchunk0.html search.templ
-
-EAPIPAGES = EXSLT/APIconstructors.html EXSLT/APIfiles.html \
-	 EXSLT/APIfunctions.html EXSLT/APIsymbols.html EXSLT/APIchunk0.html
-
-EXTRA_DIST = \
-	$(PAGES)			\
-	$(EPAGES)			\
-	$(EAPIPAGES)			\
-	APIchunk0.html			\
-	APIchunk1.html			\
-	APIchunk2.html			\
-	APIchunk3.html			\
-	APIchunk4.html			\
-	APIchunk5.html			\
-	APIchunk6.html			\
-	APIchunk7.html			\
-	APIchunk8.html			\
-	APIchunk9.html			\
-	APIchunk10.html			\
-	APIchunk11.html			\
-	APIchunk12.html			\
-	APIconstructors.html		\
-	APIfiles.html			\
-	APIfunctions.html		\
-	APIsymbols.html			\
-	EXSLT/exslt.html		\
-	EXSLT/html/book1.html		\
-	EXSLT/html/home.png		\
-	EXSLT/html/index.html		\
-	EXSLT/html/left.png		\
-	EXSLT/html/libexslt-exslt.html	\
-	EXSLT/html/libexslt-exsltexports.html \
-	EXSLT/html/libexslt-lib.html	\
-	EXSLT/html/right.png		\
-	EXSLT/html/up.png		\
-	EXSLT/libexslt-api.xml		\
-	EXSLT/libexslt-refs.xml		\
-	Libxslt-Logo-180x168.gif	\
-	Libxslt-Logo-90x34.gif		\
-	api.xsl				\
-	apibuild.py			\
-	checkapisym.xsl			\
-	contexts.gif			\
-	docbook.html			\
-	duck.png			\
-	epatents.png			\
-	extensions.html			\
-	gnome2.png			\
-	html/book1.html			\
-	html/home.png			\
-	html/index.html			\
-	html/left.png			\
-	html/libxslt-attributes.html	\
-	html/libxslt-documents.html	\
-	html/libxslt-extensions.html	\
-	html/libxslt-extra.html		\
-	html/libxslt-functions.html	\
-	html/libxslt-imports.html	\
-	html/libxslt-keys.html		\
-	html/libxslt-lib.html		\
-	html/libxslt-namespaces.html	\
-	html/libxslt-numbersInternals.html \
-	html/libxslt-pattern.html	\
-	html/libxslt-preproc.html	\
-	html/libxslt-security.html	\
-	html/libxslt-templates.html	\
-	html/libxslt-transform.html	\
-	html/libxslt-variables.html	\
-	html/libxslt-xslt.html		\
-	html/libxslt-xsltInternals.html	\
-	html/libxslt-xsltexports.html	\
-	html/libxslt-xsltlocale.html	\
-	html/libxslt-xsltutils.html	\
-	html/right.png			\
-	html/up.png			\
-	images/callouts/1.png		\
-	images/callouts/10.png		\
-	images/callouts/2.png		\
-	images/callouts/3.png		\
-	images/callouts/4.png		\
-	images/callouts/5.png		\
-	images/callouts/6.png		\
-	images/callouts/7.png		\
-	images/callouts/8.png		\
-	images/callouts/9.png		\
-	internals.html			\
-	libxslt-api.xml			\
-	libxslt-refs.xml		\
-	libxslt.xsa			\
-	newapi.xsl			\
-	news.xsl			\
-	node.gif			\
-	object.gif			\
-	processing.gif			\
-	python.html			\
-	redhat.gif			\
-	search.xml			\
-	site.xsl			\
-	smallfootonly.gif		\
-	stylesheet.gif			\
-	symbols.xml			\
-	syms.xsl			\
-	templates.gif			\
+nobase_dist_doc_DATA = \
+	tutorial/images/callouts/1.png	\
+	tutorial/images/callouts/10.png	\
+	tutorial/images/callouts/2.png	\
+	tutorial/images/callouts/3.png	\
+	tutorial/images/callouts/4.png	\
+	tutorial/images/callouts/5.png	\
+	tutorial/images/callouts/6.png	\
+	tutorial/images/callouts/7.png	\
+	tutorial/images/callouts/8.png	\
+	tutorial/images/callouts/9.png	\
 	tutorial/libxslt_tutorial.c	\
 	tutorial/libxslttutorial.html	\
-	tutorial/libxslttutorial.xml	\
 	tutorial2/libxslt_pipes.c	\
 	tutorial2/libxslt_pipes.html	\
+	xsltproc.html
+
+dist_man_MANS = xsltproc.1
+EXTRA_DIST = \
+	EXSLT/libexslt-api.xml		\
+	EXSLT/libexslt-refs.xml		\
+	apibuild.py			\
+	checkapisym.xsl			\
+	libxslt-api.xml			\
+	libxslt-refs.xml		\
+	symbols.xml			\
+	syms.xsl			\
+	tutorial/libxslttutorial.xml	\
 	tutorial2/libxslt_pipes.xml	\
-	w3c.png				\
-	xsa.xsl				\
-	xslt.html			\
-	xsltproc.1			\
-	xsltproc.html			\
 	xsltproc.xml
 
-man_MANS = xsltproc.1
-@REBUILD_DOCS_TRUE@wildcards = \
-@REBUILD_DOCS_TRUE@	*.1			\
-@REBUILD_DOCS_TRUE@	*.gif			\
-@REBUILD_DOCS_TRUE@	*.html			\
-@REBUILD_DOCS_TRUE@	*.png			\
-@REBUILD_DOCS_TRUE@	*.xsl			\
-@REBUILD_DOCS_TRUE@	EXSLT/*.html		\
-@REBUILD_DOCS_TRUE@	EXSLT/html/*.html	\
-@REBUILD_DOCS_TRUE@	EXSLT/html/*.png	\
-@REBUILD_DOCS_TRUE@	html/*.html		\
-@REBUILD_DOCS_TRUE@	html/*.png		\
-@REBUILD_DOCS_TRUE@	images/callouts/*.png	\
-@REBUILD_DOCS_TRUE@	tutorial*/libxslt*
-
+DOCBOOK_HTML = http://docbook.sourceforge.net/release/xsl/current/html/docbook.xsl
 all: all-recursive
 
 .SUFFIXES:
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -565,9 +459,9 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
-$(top_srcdir)/configure:  $(am__configure_deps)
+$(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
@@ -576,10 +470,10 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-man1: $(man_MANS)
+install-man1: $(dist_man_MANS)
 	@$(NORMAL_INSTALL)
 	@list1=''; \
-	list2='$(man_MANS)'; \
+	list2='$(dist_man_MANS)'; \
 	test -n "$(man1dir)" \
 	  && test -n "`echo $$list1$$list2`" \
 	  || exit 0; \
@@ -614,11 +508,35 @@ uninstall-man1:
 	@$(NORMAL_UNINSTALL)
 	@list=''; test -n "$(man1dir)" || exit 0; \
 	files=`{ for i in $$list; do echo "$$i"; done; \
-	l2='$(man_MANS)'; for i in $$l2; do echo "$$i"; done | \
+	l2='$(dist_man_MANS)'; for i in $$l2; do echo "$$i"; done | \
 	  sed -n '/\.1[a-z]*$$/p'; \
 	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^1][0-9a-z]*$$,1,;x' \
 	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
 	dir='$(DESTDIR)$(man1dir)'; $(am__uninstall_files_from_dir)
+install-nobase_dist_docDATA: $(nobase_dist_doc_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(nobase_dist_doc_DATA)'; test -n "$(docdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(docdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(docdir)" || exit 1; \
+	fi; \
+	$(am__nobase_list) | while read dir files; do \
+	  xfiles=; for file in $$files; do \
+	    if test -f "$$file"; then xfiles="$$xfiles $$file"; \
+	    else xfiles="$$xfiles $(srcdir)/$$file"; fi; done; \
+	  test -z "$$xfiles" || { \
+	    test "x$$dir" = x. || { \
+	      echo " $(MKDIR_P) '$(DESTDIR)$(docdir)/$$dir'"; \
+	      $(MKDIR_P) "$(DESTDIR)$(docdir)/$$dir"; }; \
+	    echo " $(INSTALL_DATA) $$xfiles '$(DESTDIR)$(docdir)/$$dir'"; \
+	    $(INSTALL_DATA) $$xfiles "$(DESTDIR)$(docdir)/$$dir" || exit $$?; }; \
+	done
+
+uninstall-nobase_dist_docDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(nobase_dist_doc_DATA)'; test -n "$(docdir)" || list=; \
+	$(am__nobase_strip_setup); files=`$(am__nobase_strip)`; \
+	dir='$(DESTDIR)$(docdir)'; $(am__uninstall_files_from_dir)
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run 'make' without going through this Makefile.
@@ -779,11 +697,10 @@ distdir-am: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-@REBUILD_DOCS_FALSE@all-local:
-all-am: Makefile $(MANS) all-local
+all-am: Makefile $(MANS) $(DATA)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(man1dir)"; do \
+	for dir in "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -816,16 +733,13 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@REBUILD_DOCS_FALSE@distclean-local:
-@REBUILD_DOCS_FALSE@clean-local:
 clean: clean-recursive
 
-clean-am: clean-generic clean-libtool clean-local mostlyclean-am
+clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f Makefile
-distclean-am: clean-am distclean-generic distclean-local \
-	distclean-tags
+distclean-am: clean-am distclean-generic distclean-tags
 
 dvi: dvi-recursive
 
@@ -839,7 +753,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-data-local install-man
+install-data-am: install-man install-nobase_dist_docDATA
 
 install-dvi: install-dvi-recursive
 
@@ -883,206 +797,44 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-local uninstall-man
+uninstall-am: uninstall-man uninstall-nobase_dist_docDATA
 
 uninstall-man: uninstall-man1
 
 .MAKE: $(am__recursive_targets) install-am install-strip
 
-.PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am all-local \
-	check check-am clean clean-generic clean-libtool clean-local \
-	cscopelist-am ctags ctags-am distclean distclean-generic \
-	distclean-libtool distclean-local distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-data-local install-dvi \
+.PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am check \
+	check-am clean clean-generic clean-libtool cscopelist-am ctags \
+	ctags-am distclean distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am install-man \
-	install-man1 install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-am uninstall-local uninstall-man uninstall-man1
+	install-man1 install-nobase_dist_docDATA install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs installdirs-am \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-am uninstall uninstall-am uninstall-man \
+	uninstall-man1 uninstall-nobase_dist_docDATA
 
 .PRECIOUS: Makefile
 
 
-@REBUILD_DOCS_TRUE@all-local:	web ../NEWS libxslt.xsa $(man_MANS) xsltproc.html
+rebuild:
+	cd $(srcdir) && ./apibuild.py
+	cd $(srcdir) && $(XSLTPROC) checkapisym.xsl libxslt-api.xml
+	cd $(srcdir) && $(XSLTPROC) -o ../libxslt/libxslt.syms syms.xsl symbols.xml
+	cd $(srcdir) && $(XSLTPROC) --nonet xsltproc.xml
+	cd $(srcdir) && $(XSLTPROC) --nonet -o xsltproc.html $(DOCBOOK_HTML) xsltproc.xml
+	cd $(srcdir) && $(XSLTPROC) -o $(WIN32_DIR)/libxslt.def.src \
+	  --nonet $(WIN32_DIR)/defgen.xsl libxslt-api.xml
+	cd $(srcdir) && $(XSLTPROC) -o $(WIN32_DIR)/libexslt.def.src \
+	  --nonet $(WIN32_DIR)/defgen.xsl EXSLT/libexslt-api.xml
+	cd devhelp && $(MAKE) rebuild
+	cd EXSLT/devhelp && $(MAKE) rebuild
 
-@REBUILD_DOCS_TRUE@api:	libxslt-api.xml libxslt-refs.xml $(APIPAGES) search.php \
-@REBUILD_DOCS_TRUE@        html/index.html $(WIN32_DIR)/libxslt.def.src
-
-@REBUILD_DOCS_TRUE@eapi:	EXSLT/libexslt-api.xml EXSLT/libexslt-refs.xml $(EAPIPAGES) \
-@REBUILD_DOCS_TRUE@	EXSLT/html/index.html $(WIN32_DIR)/libexslt.def.src
-
-@REBUILD_DOCS_TRUE@web: $(PAGES) $(EPAGES)
-
-@REBUILD_DOCS_TRUE@$(PAGES): $(srcdir)/xslt.html $(srcdir)/site.xsl
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XSLTPROC) ] ; then \
-@REBUILD_DOCS_TRUE@	  echo "Rebuilding the HTML Web pages from xslt.html" ; \
-@REBUILD_DOCS_TRUE@	  $(XSLTPROC) --nonet --html $(srcdir)/site.xsl \
-@REBUILD_DOCS_TRUE@	    $(srcdir)/xslt.html > index.html ; fi )
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XMLLINT) ] ; then \
-@REBUILD_DOCS_TRUE@	  echo "Validating the HTML Web pages" ; \
-@REBUILD_DOCS_TRUE@	  $(XMLLINT) --nonet --valid --noout $(PAGES) ; fi );
-
-@REBUILD_DOCS_TRUE@$(EPAGES): $(srcdir)/EXSLT/exslt.html $(srcdir)/site.xsl
-@REBUILD_DOCS_TRUE@	 -@(if [ ! -d EXSLT/html ] ; then \
-@REBUILD_DOCS_TRUE@	   mkdir -p EXSLT/html ; fi )
-@REBUILD_DOCS_TRUE@	 -@(if [ -x $(XSLTPROC) ] ; then \
-@REBUILD_DOCS_TRUE@	   echo "Rebuilding the HTML Web pages from exslt.html" ; \
-@REBUILD_DOCS_TRUE@	   $(XSLTPROC) --nonet --html \
-@REBUILD_DOCS_TRUE@		--stringparam dirname EXSLT/ \
-@REBUILD_DOCS_TRUE@		--stringparam libname libexslt \
-@REBUILD_DOCS_TRUE@		--stringparam logo_base ../ \
-@REBUILD_DOCS_TRUE@		$(srcdir)/site.xsl \
-@REBUILD_DOCS_TRUE@		$(srcdir)/EXSLT/exslt.html > EXSLT/index.html ; fi )
-@REBUILD_DOCS_TRUE@	 -@(if [ -x $(XMLLINT) ] ; then \
-@REBUILD_DOCS_TRUE@	   echo "Validating the HTML Web pages" ; \
-@REBUILD_DOCS_TRUE@	   $(XMLLINT) --nonet --valid --noout $(EPAGES) ; fi );
-
-@REBUILD_DOCS_TRUE@../NEWS: $(srcdir)/news.xsl $(srcdir)/news.html
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XSLTPROC) ] ; then \
-@REBUILD_DOCS_TRUE@	  $(XSLTPROC) --nonet $(srcdir)/news.xsl \
-@REBUILD_DOCS_TRUE@	    $(srcdir)/news.html > ../NEWS ; fi );
-
-@REBUILD_DOCS_TRUE@libxslt.xsa: $(srcdir)/xsa.xsl $(srcdir)/news.html
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XSLTPROC) ] ; then \
-@REBUILD_DOCS_TRUE@	  $(XSLTPROC) --nonet $(srcdir)/xsa.xsl \
-@REBUILD_DOCS_TRUE@	    news.html > libxslt.xsa ; fi );
-
-@REBUILD_DOCS_TRUE@$(APIPAGES): libxslt-refs.xml site.xsl api.xsl $(srcdir)/site.xsl \
-@REBUILD_DOCS_TRUE@	     $(srcdir)/api.xsl
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XSLTPROC) ] ; then \
-@REBUILD_DOCS_TRUE@	  echo "Rebuilding the HTML API pages from libxslt-refs.xml" ; \
-@REBUILD_DOCS_TRUE@	  $(XSLTPROC) --nonet --html \
-@REBUILD_DOCS_TRUE@			     $(srcdir)/api.xsl \
-@REBUILD_DOCS_TRUE@			     $(srcdir)/xslt.html ; fi );
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XMLLINT) ] ; then \
-@REBUILD_DOCS_TRUE@	  echo "Validating the HTML API pages" ; \
-@REBUILD_DOCS_TRUE@	  $(XMLLINT) --nonet --valid --noout API*.html; fi );
-
-@REBUILD_DOCS_TRUE@$(EAPIPAGES): EXSLT/libexslt-refs.xml site.xsl api.xsl
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XSLTPROC) ] ; then \
-@REBUILD_DOCS_TRUE@	  echo "Rebuilding the HTML API pages from libexslt-refs.xml" ; \
-@REBUILD_DOCS_TRUE@	  $(XSLTPROC) --nonet --html --output EXSLT/ \
-@REBUILD_DOCS_TRUE@			     --stringparam libname libexslt \
-@REBUILD_DOCS_TRUE@			     --stringparam dirname EXSLT/ \
-@REBUILD_DOCS_TRUE@			     --stringparam logo_base ../ \
-@REBUILD_DOCS_TRUE@			     $(srcdir)/api.xsl \
-@REBUILD_DOCS_TRUE@			     $(srcdir)/EXSLT/exslt.html ; fi );
-
-@REBUILD_DOCS_TRUE@html/index.html: libxslt-api.xml $(srcdir)/newapi.xsl
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XSLTPROC) ] ; then \
-@REBUILD_DOCS_TRUE@	  echo "Rebuilding the HTML pages from the XSLT API" ; \
-@REBUILD_DOCS_TRUE@	  $(XSLTPROC) --nonet \
-@REBUILD_DOCS_TRUE@			     $(srcdir)/newapi.xsl $(srcdir)/libxslt-api.xml ; fi );
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XMLLINT) ] ; then \
-@REBUILD_DOCS_TRUE@	  echo "Validating the resulting XHTML pages" ; \
-@REBUILD_DOCS_TRUE@	  $(XMLLINT) --nonet --valid --noout html/*.html ; fi );
-
-@REBUILD_DOCS_TRUE@wiki: libxslt-api.xml $(srcdir)/wiki.xsl
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XSLTPROC) ] ; then \
-@REBUILD_DOCS_TRUE@		echo "Rebuilding the wiki HTML pages from the XSLT API" ; \
-@REBUILD_DOCS_TRUE@		$(XSLTPROC) --nonet $(srcdir)/wiki.xsl $(srcdir)/libxslt-api.xml; fi )
-
-@REBUILD_DOCS_TRUE@EXSLT/html/index.html: EXSLT/libexslt-api.xml \
-@REBUILD_DOCS_TRUE@	$(srcdir)/newapi.xsl
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XSLTPROC) ] ; then \
-@REBUILD_DOCS_TRUE@	  echo "Rebuilding the HTML pages from the EXSLT API" ; \
-@REBUILD_DOCS_TRUE@	  $(XSLTPROC) --nonet --output EXSLT/ \
-@REBUILD_DOCS_TRUE@			     --stringparam libname libexslt \
-@REBUILD_DOCS_TRUE@			     --stringparam dirname EXSLT/ \
-@REBUILD_DOCS_TRUE@			     --stringparam logo_base ../../ \
-@REBUILD_DOCS_TRUE@			     $(srcdir)/newapi.xsl \
-@REBUILD_DOCS_TRUE@			     $(srcdir)/EXSLT/libexslt-api.xml ; fi );
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XMLLINT) ] ; then \
-@REBUILD_DOCS_TRUE@	  echo "Validating the resulting XHTML pages" ; \
-@REBUILD_DOCS_TRUE@	  $(XMLLINT) --nonet --valid --noout EXSLT/html/*.html ; fi );
-
-@REBUILD_DOCS_TRUE@libxslt-api.xml libxslt-refs.xml EXSLT/libexslt-api.xml \
-@REBUILD_DOCS_TRUE@  EXSLT/libexslt-refs.xml ../libxslt/libxslt.syms : $(srcdir)/apibuild.py $(top_srcdir)/libxslt/*.h \
-@REBUILD_DOCS_TRUE@		$(top_srcdir)/libxslt/*.c $(top_srcdir)/libexslt/*.h \
-@REBUILD_DOCS_TRUE@		$(top_srcdir)/libexslt/*.c
-@REBUILD_DOCS_TRUE@	-(cd $(srcdir) && ./apibuild.py)
-@REBUILD_DOCS_TRUE@	($(XSLTPROC) $(srcdir)/checkapisym.xsl $(srcdir)/libxslt-api.xml)
-@REBUILD_DOCS_TRUE@	($(XSLTPROC) -o ../libxslt/libxslt.syms $(srcdir)/syms.xsl $(srcdir)/symbols.xml)
-
-@REBUILD_DOCS_TRUE@xsltproc.html: xsltproc.xml
-@REBUILD_DOCS_TRUE@	-@($(XSLTPROC) --nonet -o $@ http://docbook.sourceforge.net/release/xsl/current/html/docbook.xsl xsltproc.xml)
-
-@REBUILD_DOCS_TRUE@xsltproc.1: $(srcdir)/xsltproc.xml
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XSLTPROC) ] ; then \
-@REBUILD_DOCS_TRUE@	   echo "Rebuilding the man pages from the xml" ; \
-@REBUILD_DOCS_TRUE@	   $(XSLTPROC) --nonet $(srcdir)/xsltproc.xml ; fi)
-
-# Note that in the following, xmllint output is piped to xsltproc
-@REBUILD_DOCS_TRUE@search.php: $(srcdir)/api.xsl $(srcdir)/site.xsl $(srcdir)/search.templ \
-@REBUILD_DOCS_TRUE@            $(srcdir)/search.xml $(srcdir)/search.php.inc
-@REBUILD_DOCS_TRUE@	-@(if test -x $(XMLLINT) -a -x $(XSLTPROC); then \
-@REBUILD_DOCS_TRUE@	   echo "Rebuilding search.php" ; \
-@REBUILD_DOCS_TRUE@	   $(XMLLINT) --xinclude --nonet \
-@REBUILD_DOCS_TRUE@	                      $(srcdir)/search.xml | \
-@REBUILD_DOCS_TRUE@	   $(XSLTPROC) --nonet - search.templ \
-@REBUILD_DOCS_TRUE@			      > search.php ; else \
-@REBUILD_DOCS_TRUE@	   echo "Unable to find xmllint or xsltproc in $(bindir)" ; fi)
-
-@REBUILD_DOCS_TRUE@$(WIN32_DIR)/libxslt.def.src: libxslt-api.xml
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XSLTPROC) ] ; then \
-@REBUILD_DOCS_TRUE@	  $(XSLTPROC) -o $(WIN32_DIR)/libxslt.def.src \
-@REBUILD_DOCS_TRUE@	  --nonet $(WIN32_DIR)/defgen.xsl $(srcdir)/libxslt-api.xml ; fi )
-
-@REBUILD_DOCS_TRUE@$(WIN32_DIR)/libexslt.def.src: EXSLT/libexslt-api.xml
-@REBUILD_DOCS_TRUE@	-@(if [ -x $(XSLTPROC) ] ; then \
-@REBUILD_DOCS_TRUE@	  $(XSLTPROC) -o $(WIN32_DIR)/libexslt.def.src \
-@REBUILD_DOCS_TRUE@	  --nonet $(WIN32_DIR)/defgen.xsl $(srcdir)/EXSLT/libexslt-api.xml ; fi )
-
-@REBUILD_DOCS_TRUE@clean-local:
-@REBUILD_DOCS_TRUE@	rm -f *~ *.1 *.bak *.hierarchy *.signals *-unused.txt
-
-@REBUILD_DOCS_TRUE@distclean-local:
-@REBUILD_DOCS_TRUE@	if test ! -r Makefile.am ; then \
-@REBUILD_DOCS_TRUE@		rm -f *.html *.templ *.xsa ; \
-@REBUILD_DOCS_TRUE@		rm -rf EXSLT html ; \
-@REBUILD_DOCS_TRUE@	fi
-
-@REBUILD_DOCS_TRUE@rebuild: api eapi all
-
-# This target verifies that EXTRA_DIST contains all the files matched by
-# the above list of wildcards. Note that this will only work properly when
-# srcdir = builddir.
-#
-@REBUILD_DOCS_TRUE@check-extra-dist:
-@REBUILD_DOCS_TRUE@	@for a in $(wildcards) ; do \
-@REBUILD_DOCS_TRUE@		if test ! -f "$$a" ; then \
-@REBUILD_DOCS_TRUE@			echo "not found: $$a" ; \
-@REBUILD_DOCS_TRUE@			continue ; \
-@REBUILD_DOCS_TRUE@		fi ; \
-@REBUILD_DOCS_TRUE@		present= ; \
-@REBUILD_DOCS_TRUE@		for b in $(EXTRA_DIST) ; do \
-@REBUILD_DOCS_TRUE@			test "$$a" = "$$b" && present=1 && break ; \
-@REBUILD_DOCS_TRUE@		done ; \
-@REBUILD_DOCS_TRUE@		test -n "$$present" || echo "not in EXTRA_DIST: $$a" ; \
-@REBUILD_DOCS_TRUE@	done
-
-install-data-local:
-	$(MKDIR_P) $(DESTDIR)$(HTML_DIR)
-	-$(INSTALL) -m 0644 $(srcdir)/*.html $(DESTDIR)$(HTML_DIR)
-	-$(INSTALL) -m 0644 $(srcdir)/*.gif $(DESTDIR)$(HTML_DIR)
-	$(MKDIR_P) $(DESTDIR)$(HTML_DIR)/html
-	-$(INSTALL) -m 0644 $(srcdir)/html/*.html $(DESTDIR)$(HTML_DIR)/html
-	-$(INSTALL) -m 0644 $(srcdir)/html/*.png $(DESTDIR)$(HTML_DIR)/html
-	$(MKDIR_P) $(DESTDIR)$(HTML_DIR)/EXSLT
-	-$(INSTALL) -m 0644 $(srcdir)/EXSLT/*.html $(DESTDIR)$(HTML_DIR)/EXSLT
-	$(MKDIR_P) $(DESTDIR)$(HTML_DIR)/tutorial
-	-$(INSTALL) -m 0644 $(srcdir)/tutorial/* $(DESTDIR)$(HTML_DIR)/tutorial
-	$(MKDIR_P) $(DESTDIR)$(HTML_DIR)/tutorial2
-	-$(INSTALL) -m 0644 $(srcdir)/tutorial2/* $(DESTDIR)$(HTML_DIR)/tutorial2
-
-uninstall-local:
-	rm -rf $(DESTDIR)$(HTML_DIR)
-
-.PHONY : api eapi web wiki rebuild check-extra-dist
+.PHONY: rebuild
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

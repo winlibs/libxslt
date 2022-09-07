@@ -91,14 +91,17 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = libxslt
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(xsltinc_HEADERS) \
 	$(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = xsltconfig.h xsltwin32config.h
+CONFIG_CLEAN_FILES = xsltconfig.h
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -137,9 +140,7 @@ am_libxslt_la_OBJECTS = attrvt.lo xslt.lo xsltlocale.lo xsltutils.lo \
 	pattern.lo templates.lo variables.lo keys.lo numbers.lo \
 	extensions.lo extra.lo functions.lo namespaces.lo imports.lo \
 	attributes.lo documents.lo preproc.lo transform.lo security.lo
-nodist_libxslt_la_OBJECTS =
-libxslt_la_OBJECTS = $(am_libxslt_la_OBJECTS) \
-	$(nodist_libxslt_la_OBJECTS)
+libxslt_la_OBJECTS = $(am_libxslt_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -191,7 +192,7 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libxslt_la_SOURCES) $(nodist_libxslt_la_SOURCES)
+SOURCES = $(libxslt_la_SOURCES)
 DIST_SOURCES = $(libxslt_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -222,7 +223,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/xsltconfig.h.in \
-	$(srcdir)/xsltwin32config.h.in $(top_srcdir)/depcomp
+	$(top_srcdir)/depcomp
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -256,7 +257,6 @@ EXSLT_PRIVATE_LIBS = @EXSLT_PRIVATE_LIBS@
 EXTRA_LIBS = @EXTRA_LIBS@
 FGREP = @FGREP@
 GREP = @GREP@
-HTML_DIR = @HTML_DIR@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -274,6 +274,7 @@ LIBEXSLT_VERSION_NUMBER = @LIBEXSLT_VERSION_NUMBER@
 LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
 LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
 LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
+LIBM = @LIBM@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -294,10 +295,10 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
+MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
-M_LIBS = @M_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
@@ -317,11 +318,11 @@ PKG_CONFIG = @PKG_CONFIG@
 PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
 PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 PYTHON = @PYTHON@
-PYTHONSODV = @PYTHONSODV@
-PYTHON_INCLUDES = @PYTHON_INCLUDES@
+PYTHON_CFLAGS = @PYTHON_CFLAGS@
+PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
 PYTHON_LIBS = @PYTHON_LIBS@
-PYTHON_SITE_PACKAGES = @PYTHON_SITE_PACKAGES@
-PYTHON_SUBDIR = @PYTHON_SUBDIR@
+PYTHON_PLATFORM = @PYTHON_PLATFORM@
+PYTHON_PREFIX = @PYTHON_PREFIX@
 PYTHON_VERSION = @PYTHON_VERSION@
 RANLIB = @RANLIB@
 RELDATE = @RELDATE@
@@ -343,7 +344,6 @@ WITH_XSLT_DEBUG = @WITH_XSLT_DEBUG@
 XMLLINT = @XMLLINT@
 XML_CONFIG = @XML_CONFIG@
 XSLTPROC = @XSLTPROC@
-XSLTPROCDV = @XSLTPROCDV@
 XSLT_INCLUDEDIR = @XSLT_INCLUDEDIR@
 XSLT_LIBDIR = @XSLT_LIBDIR@
 XSLT_LIBS = @XSLT_LIBS@
@@ -389,9 +389,12 @@ mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
+pkgpyexecdir = @pkgpyexecdir@
+pkgpythondir = @pkgpythondir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+pyexecdir = @pyexecdir@
 pythondir = @pythondir@
 runstatedir = @runstatedir@
 sbindir = @sbindir@
@@ -452,15 +455,11 @@ libxslt_la_SOURCES = \
 	transform.c			\
 	security.c			\
 	win32config.h			\
-	xsltwin32config.h.in		\
 	libxslt.h
-
-nodist_libxslt_la_SOURCES = \
-	xsltwin32config.h
 
 @USE_VERSION_SCRIPT_FALSE@LIBXSLT_VERSION_SCRIPT = 
 @USE_VERSION_SCRIPT_TRUE@LIBXSLT_VERSION_SCRIPT = $(VERSION_SCRIPT_FLAGS)$(srcdir)/libxslt.syms
-libxslt_la_LIBADD = $(LIBXML_LIBS) $(EXTRA_LIBS) $(M_LIBS)
+libxslt_la_LIBADD = $(LIBXML_LIBS) $(EXTRA_LIBS) $(LIBM)
 libxslt_la_LDFLAGS = \
 		$(LIBXSLT_VERSION_SCRIPT)		\
 		-version-info $(LIBXSLT_VERSION_INFO)
@@ -471,7 +470,7 @@ all: all-am
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .o .obj
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -495,14 +494,12 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
-$(top_srcdir)/configure:  $(am__configure_deps)
+$(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 xsltconfig.h: $(top_builddir)/config.status $(srcdir)/xsltconfig.h.in
-	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-xsltwin32config.h: $(top_builddir)/config.status $(srcdir)/xsltwin32config.h.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
