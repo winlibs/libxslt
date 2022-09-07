@@ -133,7 +133,7 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libexslt_la_DEPENDENCIES = $(top_builddir)/libxslt/libxslt.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am_libexslt_la_OBJECTS = exslt.lo common.lo crypto.lo math.lo sets.lo \
 	functions.lo strings.lo date.lo saxon.lo dynamic.lo
 libexslt_la_OBJECTS = $(am_libexslt_la_OBJECTS)
@@ -244,7 +244,6 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 EXSLT_INCLUDEDIR = @EXSLT_INCLUDEDIR@
 EXSLT_LIBDIR = @EXSLT_LIBDIR@
-EXSLT_LIBS = @EXSLT_LIBS@
 EXSLT_PRIVATE_LIBS = @EXSLT_PRIVATE_LIBS@
 EXTRA_LIBS = @EXTRA_LIBS@
 FGREP = @FGREP@
@@ -330,6 +329,7 @@ WITH_DEBUGGER = @WITH_DEBUGGER@
 WITH_MEM_DEBUG = @WITH_MEM_DEBUG@
 WITH_MODULES = @WITH_MODULES@
 WITH_PROFILER = @WITH_PROFILER@
+WITH_THREADS = @WITH_THREADS@
 WITH_TRIO = @WITH_TRIO@
 WITH_XSLT_DEBUG = @WITH_XSLT_DEBUG@
 XMLLINT = @XMLLINT@
@@ -385,6 +385,7 @@ prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
 pythondir = @pythondir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -420,7 +421,7 @@ libexslt_la_SOURCES = \
 	libexslt.h			\
 	dynamic.c
 
-libexslt_la_LIBADD = $(top_builddir)/libxslt/libxslt.la $(EXTRA_LIBS) $(LIBGCRYPT_LIBS) $(M_LIBS)
+libexslt_la_LIBADD = $(top_builddir)/libxslt/libxslt.la $(LIBXML_LIBS) $(EXTRA_LIBS) $(LIBGCRYPT_LIBS) $(M_LIBS)
 libexslt_la_LDFLAGS = -version-info $(LIBEXSLT_VERSION_INFO)
 man_MANS = libexslt.3
 EXTRA_DIST = $(man_MANS)

@@ -147,7 +147,6 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 EXSLT_INCLUDEDIR = @EXSLT_INCLUDEDIR@
 EXSLT_LIBDIR = @EXSLT_LIBDIR@
-EXSLT_LIBS = @EXSLT_LIBS@
 EXSLT_PRIVATE_LIBS = @EXSLT_PRIVATE_LIBS@
 EXTRA_LIBS = @EXTRA_LIBS@
 FGREP = @FGREP@
@@ -233,6 +232,7 @@ WITH_DEBUGGER = @WITH_DEBUGGER@
 WITH_MEM_DEBUG = @WITH_MEM_DEBUG@
 WITH_MODULES = @WITH_MODULES@
 WITH_PROFILER = @WITH_PROFILER@
+WITH_THREADS = @WITH_THREADS@
 WITH_TRIO = @WITH_TRIO@
 WITH_XSLT_DEBUG = @WITH_XSLT_DEBUG@
 XMLLINT = @XMLLINT@
@@ -288,6 +288,7 @@ prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
 pythondir = @pythondir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -303,7 +304,8 @@ EXTRA_DIST = \
 	split.1.xml split.1.xsl split.1.out		\
 	tokenize.1.xml tokenize.1.xsl tokenize.1.out	\
 	tokenize.2.xml tokenize.2.xsl tokenize.2.out	\
-	tokenize.3.xml tokenize.3.xsl tokenize.3.out
+	tokenize.3.xml tokenize.3.xsl tokenize.3.out	\
+	uri.xml uri.xsl uri.out
 
 CLEANFILES = .memdump
 all: all-am

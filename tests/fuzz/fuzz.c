@@ -77,6 +77,10 @@ xsltFuzzLoadDoc(const char *argv0, const char *dir, const char *filename) {
     if (dir != NULL) {
         path = malloc(strlen(dir) + 1 + strlen(filename) + 1);
         sprintf(path, "%s/%s", dir, filename);
+        doc = xmlReadFile(path, NULL, 0);
+        if (doc == NULL)
+            fprintf(stderr, "Error: unable to parse file '%s' in '%s'\n",
+                    filename, dir);
     } else {
         const char *end;
         size_t dirLen;
@@ -87,11 +91,22 @@ xsltFuzzLoadDoc(const char *argv0, const char *dir, const char *filename) {
         memcpy(path, argv0, dirLen);
         path[dirLen] = '\0';
         strcat(path, filename);
+        doc = xmlReadFile(path, NULL, 0);
+
+        if (doc == NULL && dirLen > 0) {
+            /* Binary might be in .libs, try parent directory */
+            path[dirLen-1] = 0;
+            end = strrchr(path, DIR_SEP);
+            dirLen = (end == NULL) ? 0 : end - path + 1;
+            path[dirLen] = '\0';
+            strcat(path, filename);
+            doc = xmlReadFile(path, NULL, 0);
+        }
+
+        if (doc == NULL)
+            fprintf(stderr, "Error: unable to parse file '%s'\n", filename);
     }
 
-    doc = xmlReadFile(path, NULL, 0);
-    if (doc == NULL)
-        fprintf(stderr, "Error: unable to parse file '%s'\n", path);
     free(path);
 
     return doc;
@@ -168,8 +183,6 @@ xsltFuzzXPathInit(int *argc_p ATTRIBUTE_UNUSED, char ***argv_p,
     xpctxt = tctxt->xpathCtxt;
 
     /* Resource limits to avoid timeouts and call stack overflows */
-    xpctxt->maxParserDepth = 15;
-    xpctxt->maxDepth = 100;
     xpctxt->opLimit = 500000;
 
     /* Test namespaces used in xpath.xml */
@@ -300,13 +313,6 @@ xsltFuzzXsltInit(int *argc_p ATTRIBUTE_UNUSED, char ***argv_p,
     return 0;
 }
 
-static void
-xsltSetXPathResourceLimits(xmlXPathContextPtr ctxt) {
-    ctxt->maxParserDepth = 15;
-    ctxt->maxDepth = 100;
-    ctxt->opLimit = 100000;
-}
-
 xmlChar *
 xsltFuzzXslt(const char *data, size_t size) {
     xmlDocPtr xsltDoc;
@@ -336,7 +342,7 @@ xsltFuzzXslt(const char *data, size_t size) {
         xmlFreeDoc(xsltDoc);
         return NULL;
     }
-    xsltSetXPathResourceLimits(sheet->xpathCtxt);
+    sheet->xpathCtxt->opLimit = 100000;
     sheet->xpathCtxt->opCount = 0;
     if (xsltParseStylesheetUser(sheet, xsltDoc) != 0) {
         xsltFreeStylesheet(sheet);
@@ -348,7 +354,7 @@ xsltFuzzXslt(const char *data, size_t size) {
     xsltSetCtxtSecurityPrefs(sec, ctxt);
     ctxt->maxTemplateDepth = 100;
     ctxt->opLimit = 20000;
-    xsltSetXPathResourceLimits(ctxt->xpathCtxt);
+    ctxt->xpathCtxt->opLimit = 100000;
     ctxt->xpathCtxt->opCount = sheet->xpathCtxt->opCount;
 
     result = xsltApplyStylesheetUser(sheet, doc, NULL, NULL, NULL, ctxt);

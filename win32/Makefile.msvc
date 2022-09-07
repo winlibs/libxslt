@@ -73,6 +73,11 @@ LDFLAGS = $(LDFLAGS) /DEBUG
 CFLAGS = $(CFLAGS) /D "NDEBUG" /O2 
 !endif
 
+# append CFLAGS etc. passed on command line
+CPPFLAGS = $(CPPFLAGS) $(EXTRA_CPPFLAGS)
+CFLAGS = $(CFLAGS) $(EXTRA_CFLAGS)
+LDFLAGS = $(LDFLAGS) $(EXTRA_LDFLAGS)
+
 # Libxslt object files.
 XSLT_OBJS = $(XSLT_INTDIR)\attributes.obj\
 	$(XSLT_INTDIR)\documents.obj\
@@ -224,7 +229,7 @@ $(XSLT_INTDIR_A) :
 
 # An implicit rule for static libxslt compilation.
 {$(XSLT_SRCDIR)}.c{$(XSLT_INTDIR_A)}.obj::
-	$(CC) $(CFLAGS) /D "LIBXSLT_STATIC" \
+	$(CC) $(CFLAGS) /D "LIBXML_STATIC" /D "LIBXSLT_STATIC" \
 		/Fo$(XSLT_INTDIR_A)\ /c $<
 
 # Compiles libxslt source. Uses the implicit rule for commands.
@@ -270,7 +275,7 @@ $(EXSLT_INTDIR_A) :
 
 # An implicit rule for static libexslt compilation.
 {$(EXSLT_SRCDIR)}.c{$(EXSLT_INTDIR_A)}.obj::
-	$(CC) /D "LIBXSLT_STATIC" /D "LIBEXSLT_STATIC" \
+	$(CC) /D "LIBXML_STATIC" /D "LIBXSLT_STATIC" /D "LIBEXSLT_STATIC" \
 		/I$(EXSLT_SRCDIR) $(CFLAGS) /Fo$(EXSLT_INTDIR_A)\ /c $<
 
 # Compiles libxslt source. Uses the implicit rule for commands.
@@ -309,7 +314,7 @@ $(UTILS_INTDIR) :
 # An implicit rule for xsltproc and friends.
 APPLIBS = $(LIBS)
 !if "$(STATIC)" == "1"
-APPLIBS = $(LIBS) libxml2.lib
+APPLIBS = $(LIBS) libxml2_a.lib
 !if "$(WITH_ICONV)" == "1"
 APPLIBS = $(APPLIBS) iconv.lib
 !endif
@@ -317,7 +322,7 @@ APPLIBS = $(APPLIBS) iconv.lib
 APPLIBS = $(APPLIBS) zlib.lib
 !endif
 {$(UTILS_SRCDIR)}.c{$(BINDIR)}.exe:
-	$(CC) /D "LIBXSLT_STATIC" /D "LIBEXSLT_STATIC" \
+	$(CC) /D "LIBXML_STATIC" /D "LIBXSLT_STATIC" /D "LIBEXSLT_STATIC" \
 		$(CFLAGS) /Fo$(UTILS_INTDIR)\ /c $< 
 	$(LD) $(LDFLAGS) /OUT:$@ $(XSLT_A) $(EXSLT_A) $(APPLIBS) $(UTILS_INTDIR)\$(<B).obj
 	@$(_VC_MANIFEST_EMBED_EXE)

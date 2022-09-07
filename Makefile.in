@@ -100,7 +100,8 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES = libxslt.pc libexslt.pc xslt-config libxslt.spec
+CONFIG_CLEAN_FILES = libxslt.pc libexslt.pc libxslt-config.cmake \
+	xslt-config libxslt.spec
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -129,8 +130,9 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(confexecdir)" \
-	"$(DESTDIR)$(m4datadir)" "$(DESTDIR)$(pkgconfigdir)"
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(cmakedir)" \
+	"$(DESTDIR)$(confexecdir)" "$(DESTDIR)$(m4datadir)" \
+	"$(DESTDIR)$(pkgconfigdir)"
 SCRIPTS = $(bin_SCRIPTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -159,7 +161,7 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
-DATA = $(confexec_DATA) $(m4data_DATA) $(pkgconfig_DATA)
+DATA = $(cmake_DATA) $(confexec_DATA) $(m4data_DATA) $(pkgconfig_DATA)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 am__recursive_targets = \
@@ -190,10 +192,11 @@ ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.h.in \
-	$(srcdir)/libexslt.pc.in $(srcdir)/libxslt.pc.in \
-	$(srcdir)/libxslt.spec.in $(srcdir)/xslt-config.in AUTHORS \
-	COPYING ChangeLog INSTALL NEWS README TODO compile \
-	config.guess config.sub install-sh ltmain.sh missing
+	$(srcdir)/libexslt.pc.in $(srcdir)/libxslt-config.cmake.in \
+	$(srcdir)/libxslt.pc.in $(srcdir)/libxslt.spec.in \
+	$(srcdir)/xslt-config.in AUTHORS COPYING ChangeLog INSTALL \
+	NEWS README TODO compile config.guess config.sub install-sh \
+	ltmain.sh missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -264,7 +267,6 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 EXSLT_INCLUDEDIR = @EXSLT_INCLUDEDIR@
 EXSLT_LIBDIR = @EXSLT_LIBDIR@
-EXSLT_LIBS = @EXSLT_LIBS@
 EXSLT_PRIVATE_LIBS = @EXSLT_PRIVATE_LIBS@
 EXTRA_LIBS = @EXTRA_LIBS@
 FGREP = @FGREP@
@@ -350,6 +352,7 @@ WITH_DEBUGGER = @WITH_DEBUGGER@
 WITH_MEM_DEBUG = @WITH_MEM_DEBUG@
 WITH_MODULES = @WITH_MODULES@
 WITH_PROFILER = @WITH_PROFILER@
+WITH_THREADS = @WITH_THREADS@
 WITH_TRIO = @WITH_TRIO@
 WITH_XSLT_DEBUG = @WITH_XSLT_DEBUG@
 XMLLINT = @XMLLINT@
@@ -405,6 +408,7 @@ prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
 pythondir = @pythondir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -430,11 +434,14 @@ EXTRA_DIST = xsltConf.sh.in xslt-config.in libxslt.spec libxslt.spec.in \
              FEATURES TODO Copyright libxslt.m4 \
 	     win32/libxslt/libxslt.def win32/libxslt/libxslt.dsw \
 	     win32/libxslt/libxslt_so.dsp win32/libxslt/xsltproc.dsp \
+	     CMakeLists.txt config.h.cmake.in FindGcrypt.cmake libxslt-config.cmake.in libxslt-config.cmake.cmake.in \
 	     $(CVS_EXTRA_DIST)
 
 CLEANFILES = xsltConf.sh
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libxslt.pc libexslt.pc
+cmakedir = $(libdir)/cmake/libxslt
+cmake_DATA = FindGcrypt.cmake libxslt-config.cmake
 m4datadir = $(datadir)/aclocal
 m4data_DATA = libxslt.m4
 all: config.h
@@ -493,6 +500,8 @@ libxslt.pc: $(top_builddir)/config.status $(srcdir)/libxslt.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 libexslt.pc: $(top_builddir)/config.status $(srcdir)/libexslt.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
+libxslt-config.cmake: $(top_builddir)/config.status $(srcdir)/libxslt-config.cmake.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
 xslt-config: $(top_builddir)/config.status $(srcdir)/xslt-config.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 libxslt.spec: $(top_builddir)/config.status $(srcdir)/libxslt.spec.in
@@ -541,6 +550,27 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool config.lt
+install-cmakeDATA: $(cmake_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(cmake_DATA)'; test -n "$(cmakedir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(cmakedir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(cmakedir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(cmakedir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(cmakedir)" || exit $$?; \
+	done
+
+uninstall-cmakeDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(cmake_DATA)'; test -n "$(cmakedir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(cmakedir)'; $(am__uninstall_files_from_dir)
 install-confexecDATA: $(confexec_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(confexec_DATA)'; test -n "$(confexecdir)" || list=; \
@@ -911,7 +941,7 @@ check: check-recursive
 all-am: Makefile $(SCRIPTS) $(DATA) config.h
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(confexecdir)" "$(DESTDIR)$(m4datadir)" "$(DESTDIR)$(pkgconfigdir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(cmakedir)" "$(DESTDIR)$(confexecdir)" "$(DESTDIR)$(m4datadir)" "$(DESTDIR)$(pkgconfigdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -967,7 +997,8 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-m4dataDATA install-pkgconfigDATA
+install-data-am: install-cmakeDATA install-m4dataDATA \
+	install-pkgconfigDATA
 
 install-dvi: install-dvi-recursive
 
@@ -1013,8 +1044,9 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-binSCRIPTS uninstall-confexecDATA \
-	uninstall-m4dataDATA uninstall-pkgconfigDATA
+uninstall-am: uninstall-binSCRIPTS uninstall-cmakeDATA \
+	uninstall-confexecDATA uninstall-m4dataDATA \
+	uninstall-pkgconfigDATA
 
 .MAKE: $(am__recursive_targets) all check-am install-am install-strip
 
@@ -1026,17 +1058,18 @@ uninstall-am: uninstall-binSCRIPTS uninstall-confexecDATA \
 	distclean distclean-generic distclean-hdr distclean-libtool \
 	distclean-tags distcleancheck distdir distuninstallcheck dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-binSCRIPTS install-confexecDATA install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-m4dataDATA install-man install-pdf \
-	install-pdf-am install-pkgconfigDATA install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
-	ps ps-am tags tags-am uninstall uninstall-am \
-	uninstall-binSCRIPTS uninstall-confexecDATA \
-	uninstall-m4dataDATA uninstall-pkgconfigDATA
+	install-binSCRIPTS install-cmakeDATA install-confexecDATA \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-m4dataDATA install-man \
+	install-pdf install-pdf-am install-pkgconfigDATA install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
+	uninstall-am uninstall-binSCRIPTS uninstall-cmakeDATA \
+	uninstall-confexecDATA uninstall-m4dataDATA \
+	uninstall-pkgconfigDATA
 
 .PRECIOUS: Makefile
 

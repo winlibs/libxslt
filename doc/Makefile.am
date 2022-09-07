@@ -1,5 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
+SUBDIRS = devhelp EXSLT/devhelp
+
 # The top-level SGML file.
 DOC_MAIN_XML_FILE=libxslt.xml
 
@@ -136,7 +138,9 @@ EXTRA_DIST =				\
 
 man_MANS = xsltproc.1
 
-all-local:	web ../NEWS libxslt.xsa $(man_MANS)
+if REBUILD_DOCS
+
+all-local:	web ../NEWS libxslt.xsa $(man_MANS) xsltproc.html
 
 api:	libxslt-api.xml libxslt-refs.xml $(APIPAGES) search.php \
         html/index.html $(WIN32_DIR)/libxslt.def.src
@@ -238,6 +242,9 @@ libxslt-api.xml libxslt-refs.xml EXSLT/libexslt-api.xml \
 	($(XSLTPROC) $(srcdir)/checkapisym.xsl $(srcdir)/libxslt-api.xml)
 	($(XSLTPROC) -o ../libxslt/libxslt.syms $(srcdir)/syms.xsl $(srcdir)/symbols.xml)
 
+xsltproc.html: xsltproc.xml
+	-@($(XSLTPROC) --nonet -o $@ http://docbook.sourceforge.net/release/xsl/current/html/docbook.xsl xsltproc.xml)
+
 xsltproc.1: $(srcdir)/xsltproc.xml
 	-@(if [ -x $(XSLTPROC) ] ; then \
 	   echo "Rebuilding the man pages from the xml" ; \
@@ -305,6 +312,8 @@ check-extra-dist:
 		done ; \
 		test -n "$$present" || echo "not in EXTRA_DIST: $$a" ; \
 	done
+
+endif
 
 install-data-local:
 	$(MKDIR_P) $(DESTDIR)$(HTML_DIR)

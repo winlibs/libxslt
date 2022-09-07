@@ -147,7 +147,6 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 EXSLT_INCLUDEDIR = @EXSLT_INCLUDEDIR@
 EXSLT_LIBDIR = @EXSLT_LIBDIR@
-EXSLT_LIBS = @EXSLT_LIBS@
 EXSLT_PRIVATE_LIBS = @EXSLT_PRIVATE_LIBS@
 EXTRA_LIBS = @EXTRA_LIBS@
 FGREP = @FGREP@
@@ -233,6 +232,7 @@ WITH_DEBUGGER = @WITH_DEBUGGER@
 WITH_MEM_DEBUG = @WITH_MEM_DEBUG@
 WITH_MODULES = @WITH_MODULES@
 WITH_PROFILER = @WITH_PROFILER@
+WITH_THREADS = @WITH_THREADS@
 WITH_TRIO = @WITH_TRIO@
 WITH_XSLT_DEBUG = @WITH_XSLT_DEBUG@
 XMLLINT = @XMLLINT@
@@ -288,6 +288,7 @@ prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
 pythondir = @pythondir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -367,6 +368,7 @@ EXTRA_DIST = \
     test-7.7-3.out test-7.7-3.xml test-7.7-3.xsl	\
     test-7.7-4.out test-7.7-4.xml test-7.7-4.xsl	\
     test-7.7-5.out test-7.7-5.xml test-7.7-5.xsl	\
+    test-7.7-6.out test-7.7-6.xml test-7.7-6.xsl	\
     test-8-1.out test-8-1.xml test-8-1.xsl		\
     test-9.1-1.out test-9.1-1.xml test-9.1-1.xsl	\
     test-9.1-2.out test-9.1-2.xml test-9.1-2.xsl	\

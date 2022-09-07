@@ -151,7 +151,6 @@ am__define_uniq_tagged_files = \
   done | $(am__uniquify_input)`
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = $(SUBDIRS)
 am__DIST_COMMON = $(srcdir)/Makefile.in
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 am__relativize = \
@@ -207,7 +206,6 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 EXSLT_INCLUDEDIR = @EXSLT_INCLUDEDIR@
 EXSLT_LIBDIR = @EXSLT_LIBDIR@
-EXSLT_LIBS = @EXSLT_LIBS@
 EXSLT_PRIVATE_LIBS = @EXSLT_PRIVATE_LIBS@
 EXTRA_LIBS = @EXTRA_LIBS@
 FGREP = @FGREP@
@@ -293,6 +291,7 @@ WITH_DEBUGGER = @WITH_DEBUGGER@
 WITH_MEM_DEBUG = @WITH_MEM_DEBUG@
 WITH_MODULES = @WITH_MODULES@
 WITH_PROFILER = @WITH_PROFILER@
+WITH_THREADS = @WITH_THREADS@
 WITH_TRIO = @WITH_TRIO@
 WITH_XSLT_DEBUG = @WITH_XSLT_DEBUG@
 XMLLINT = @XMLLINT@
@@ -348,6 +347,7 @@ prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
 pythondir = @pythondir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -357,6 +357,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = common functions math saxon sets strings dynamic date $(CRYPTO_TESTDIR)
+DIST_SUBDIRS = common functions math saxon sets strings dynamic date crypto
 all: all-recursive
 
 .SUFFIXES:

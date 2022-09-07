@@ -136,7 +136,7 @@ function usage()
    file included by our makefile. */
 function discoverVersion()
 {
-	var fso, cf, vf, ln, s;
+	var fso, cf, vf, ln, s, m;
 	fso = new ActiveXObject("Scripting.FileSystemObject");
 	verCvs = "";
 	if (useCvsVer && fso.FileExists("..\\CVS\\Entries")) {
@@ -145,8 +145,8 @@ function discoverVersion()
 			ln = cf.ReadLine();
 			s = new String(ln);
 			if (s.search(/^\/ChangeLog\//) != -1) {
-				iDot = s.indexOf(".");
-				iSlash = s.indexOf("/", iDot);
+				var iDot = s.indexOf(".");
+				var iSlash = s.indexOf("/", iDot);
 				verCvs = "CVS" + s.substring(iDot + 1, iSlash);
 				break;
 			}
@@ -176,13 +176,13 @@ function discoverVersion()
 			verMicroXslt = m[1];
 		} else if (s.search(/^LIBEXSLT_MAJOR_VERSION=/) != -1) {
 			vf.WriteLine(s);
-			verMajorExslt = s.substring(s.indexOf("=") + 1, s.length)
+			verMajorExslt = s.substring(s.indexOf("=") + 1, s.length);
 		} else if(s.search(/^LIBEXSLT_MINOR_VERSION=/) != -1) {
 			vf.WriteLine(s);
-			verMinorExslt = s.substring(s.indexOf("=") + 1, s.length)
+			verMinorExslt = s.substring(s.indexOf("=") + 1, s.length);
 		} else if(s.search(/^LIBEXSLT_MICRO_VERSION=/) != -1) {
 			vf.WriteLine(s);
-			verMicroExslt = s.substring(s.indexOf("=") + 1, s.length)
+			verMicroExslt = s.substring(s.indexOf("=") + 1, s.length);
 		}
 	}
 	cf.Close();
@@ -360,8 +360,6 @@ for (i = 0; (i < WScript.Arguments.length) && (error == 0); i++) {
 			buildStatic = strToBool(arg.substring(opt.length + 1, arg.length));
 		else if (opt == "prefix")
 			buildPrefix = arg.substring(opt.length + 1, arg.length);
-		else if (opt == "incdir")
-			buildIncPrefix = arg.substring(opt.length + 1, arg.length);
 		else if (opt == "bindir")
 			buildBinPrefix = arg.substring(opt.length + 1, arg.length);
 		else if (opt == "libdir")
@@ -491,7 +489,7 @@ txtOut += "-------------------------\n";
 txtOut += "          Compiler: " + compiler + "\n";
 if (compiler == "msvc")
 	txtOut += "  C-Runtime option: " + cruntime + "\n";
-	txtOut += "    Embed Manifest: " + boolToStr(vcmanifest) + "\n";
+txtOut += "    Embed Manifest: " + boolToStr(vcmanifest) + "\n";
 txtOut += "     Debug symbols: " + boolToStr(buildDebug) + "\n";
 txtOut += "   Static xsltproc: " + boolToStr(buildStatic) + "\n";
 txtOut += "    Install prefix: " + buildPrefix + "\n";
