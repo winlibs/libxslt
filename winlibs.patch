@@ -1,0 +1,86 @@
+ README.md           | 20 ++++++++++++++++++++
+ win32/Makefile.msvc |  8 ++++----
+ win32/configure.js  |  4 ++--
+ 3 files changed, 26 insertions(+), 6 deletions(-)
+
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..31e29fa
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,20 @@
++# libxslt
++
++libxslt is the XSLT C parser and toolkit developed for the Gnome project from
++[http://xmlsoft.org/XSLT/](http://xmlsoft.org/XSLT/)
++
++PHP currently uses version 1.1.27 released 2012.09.12
++
++# Building for PHP
++
++Due to the way we link libxslt and libxml2, we have our own custom libxslt
++build. The change lies in the fact that we dynamically link the static libxslt
++lib to the libxml2 library. When libxslt is statically built into an
++extension, it dynamically links to the php dll exporting the libxml2 symbols.
++In order to support pre Win2K systems, libxslt is built without crypto
++support:
++
++    cscript configure.js lib="path to iconv lib dir;path to libxml2 lib dir;" include="path to iconv header dir;path to libxml2 header dir" modules=yes crypto=no vcmanifest=yes
++
++Our custom build requires changes to the Makefile.msvc file. The patch can be found within the
++libxslt win32 directory.
+diff --git a/win32/Makefile.msvc b/win32/Makefile.msvc
+index 1f87668..c186e32 100644
+--- a/win32/Makefile.msvc
++++ b/win32/Makefile.msvc
+@@ -229,7 +229,7 @@ $(XSLT_INTDIR_A) :
+ 
+ # An implicit rule for static libxslt compilation.
+ {$(XSLT_SRCDIR)}.c{$(XSLT_INTDIR_A)}.obj::
+-	$(CC) $(CFLAGS) /D "LIBXML_STATIC" /D "LIBXSLT_STATIC" \
++	$(CC) $(CFLAGS) /D "LIBXSLT_STATIC" \
+ 		/Fo$(XSLT_INTDIR_A)\ /c $<
+ 
+ # Compiles libxslt source. Uses the implicit rule for commands.
+@@ -275,7 +275,7 @@ $(EXSLT_INTDIR_A) :
+ 
+ # An implicit rule for static libexslt compilation.
+ {$(EXSLT_SRCDIR)}.c{$(EXSLT_INTDIR_A)}.obj::
+-	$(CC) /D "LIBXML_STATIC" /D "LIBXSLT_STATIC" /D "LIBEXSLT_STATIC" \
++	$(CC) /D "LIBXSLT_STATIC" /D "LIBEXSLT_STATIC" \
+ 		/I$(EXSLT_SRCDIR) $(CFLAGS) /Fo$(EXSLT_INTDIR_A)\ /c $<
+ 
+ # Compiles libxslt source. Uses the implicit rule for commands.
+@@ -314,7 +314,7 @@ $(UTILS_INTDIR) :
+ # An implicit rule for xsltproc and friends.
+ APPLIBS = $(LIBS)
+ !if "$(STATIC)" == "1"
+-APPLIBS = $(LIBS) libxml2_a.lib
++APPLIBS = $(LIBS) libxml2.lib
+ !if "$(WITH_ICONV)" == "1"
+ APPLIBS = $(APPLIBS) iconv.lib
+ !endif
+@@ -322,7 +322,7 @@ APPLIBS = $(APPLIBS) iconv.lib
+ APPLIBS = $(APPLIBS) zlib.lib
+ !endif
+ {$(UTILS_SRCDIR)}.c{$(BINDIR)}.exe:
+-	$(CC) /D "LIBXML_STATIC" /D "LIBXSLT_STATIC" /D "LIBEXSLT_STATIC" \
++	$(CC) /D "LIBXSLT_STATIC" /D "LIBEXSLT_STATIC" \
+ 		$(CFLAGS) /Fo$(UTILS_INTDIR)\ /c $< 
+ 	$(LD) $(LDFLAGS) /OUT:$@ $(XSLT_A) $(EXSLT_A) $(APPLIBS) $(UTILS_INTDIR)\$(<B).obj
+ 	@$(_VC_MANIFEST_EMBED_EXE)
+diff --git a/win32/configure.js b/win32/configure.js
+index 66986b0..74340d5 100644
+--- a/win32/configure.js
++++ b/win32/configure.js
+@@ -251,8 +251,8 @@ function configureExslt()
+ 	while (ofi.AtEndOfStream != true) {
+ 		ln = ofi.ReadLine();
+ 		s = new String(ln);
+-		if (s.search(/\@VERSION\@/) != -1) {
+-			of.WriteLine(s.replace(/\@VERSION\@/, 
++		if (s.search(/\@LIBEXSLT_VERSION\@/) != -1) {
++			of.WriteLine(s.replace(/\@LIBEXSLT_VERSION\@/, 
+ 				verMajorExslt + "." + verMinorExslt + "." + verMicroExslt));
+ 		} else if (s.search(/\@LIBEXSLT_VERSION_NUMBER\@/) != -1) {
+ 			of.WriteLine(s.replace(/\@LIBEXSLT_VERSION_NUMBER\@/, 
