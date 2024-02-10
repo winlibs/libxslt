@@ -26,13 +26,8 @@ dist_man_MANS = xsltproc.1
 
 EXTRA_DIST =				\
 	EXSLT/libexslt-api.xml		\
-	EXSLT/libexslt-refs.xml		\
 	apibuild.py			\
-	checkapisym.xsl			\
 	libxslt-api.xml			\
-	libxslt-refs.xml		\
-	symbols.xml			\
-	syms.xsl			\
 	tutorial/libxslttutorial.xml	\
 	tutorial2/libxslt_pipes.xml	\
 	xsltproc.xml
@@ -41,14 +36,8 @@ DOCBOOK_HTML = http://docbook.sourceforge.net/release/xsl/current/html/docbook.x
 
 rebuild:
 	cd $(srcdir) && ./apibuild.py
-	cd $(srcdir) && $(XSLTPROC) checkapisym.xsl libxslt-api.xml
-	cd $(srcdir) && $(XSLTPROC) -o ../libxslt/libxslt.syms syms.xsl symbols.xml
 	cd $(srcdir) && $(XSLTPROC) --nonet xsltproc.xml
 	cd $(srcdir) && $(XSLTPROC) --nonet -o xsltproc.html $(DOCBOOK_HTML) xsltproc.xml
-	cd $(srcdir) && $(XSLTPROC) -o $(WIN32_DIR)/libxslt.def.src \
-	  --nonet $(WIN32_DIR)/defgen.xsl libxslt-api.xml
-	cd $(srcdir) && $(XSLTPROC) -o $(WIN32_DIR)/libexslt.def.src \
-	  --nonet $(WIN32_DIR)/defgen.xsl EXSLT/libexslt-api.xml
 	cd devhelp && $(MAKE) rebuild
 	cd EXSLT/devhelp && $(MAKE) rebuild
 

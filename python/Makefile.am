@@ -1,4 +1,8 @@
-# Makefile for libxml2 python library
+# Makefile for libxslt python library
+
+# We use a rule with multiple output files which creates problems with
+# parallel builds.
+.NOTPARALLEL:
 
 SUBDIRS = . tests
 
@@ -9,7 +13,9 @@ EXTRA_DIST = 			\
 	libxml_wrap.h		\
 	libxslt_wrap.h		\
 	libxsl.py		\
-	libxslt-python-api.xml
+	libxslt-python-api.xml	\
+	pyproject.toml		\
+	setup.py.in
 
 if WITH_PYTHON
 
@@ -18,15 +24,15 @@ pyexec_LTLIBRARIES = libxsltmod.la
 libxsltmod_la_CPPFLAGS = \
 	-I$(top_srcdir)/libxslt \
 	-I$(top_srcdir) \
-	-I../libexslt \
-	$(PYTHON_CFLAGS) $(LIBXML_CFLAGS) $(LIBXSLT_CFLAGS)
+	-I../libexslt
+libxsltmod_la_CFLAGS = $(AM_CFLAGS) $(PYTHON_CFLAGS)
 libxsltmod_la_SOURCES = libxslt.c types.c
 nodist_libxsltmod_la_SOURCES = libxslt-py.c
 libxsltmod_la_LIBADD = \
 	$(top_builddir)/libxslt/libxslt.la \
 	$(top_builddir)/libexslt/libexslt.la \
 	$(PYTHON_LIBS) $(LIBXML_LIBS)
-libxsltmod_la_LDFLAGS = -module -avoid-version
+libxsltmod_la_LDFLAGS = $(AM_LDFLAGS) $(PYTHON_LDFLAGS) -module -avoid-version
 
 libxslt.py: $(srcdir)/libxsl.py libxsltclass.py
 	cat $(srcdir)/libxsl.py libxsltclass.py > $@

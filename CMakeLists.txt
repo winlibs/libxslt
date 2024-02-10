@@ -1,6 +1,26 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.18)
 
-project(libxslt1 VERSION 1.1.35 LANGUAGES C)
+file(STRINGS "configure.ac" CONFIGURE_AC_LINES)
+foreach(line ${CONFIGURE_AC_LINES})
+	if(line MATCHES [[^m4_define\(\[(MAJOR|MINOR|MICRO)_VERSION\],[ \t]*\[([0-9]+)\]\)$]])
+		set(LIBXSLT_${CMAKE_MATCH_1}_VERSION ${CMAKE_MATCH_2})
+        elseif(line MATCHES "^LIBEXSLT_(MAJOR|MINOR|MICRO)_VERSION=([0-9]+)$")
+		set(LIBEXSLT_${CMAKE_MATCH_1}_VERSION ${CMAKE_MATCH_2})
+	endif()
+endforeach()
+
+set(LIBXSLT_DOTTED_VERSION "${LIBXSLT_MAJOR_VERSION}.${LIBXSLT_MINOR_VERSION}.${LIBXSLT_MICRO_VERSION}")
+math(EXPR LIBXSLT_VERSION_NUMBER "${LIBXSLT_MAJOR_VERSION} * 10000 + ${LIBXSLT_MINOR_VERSION} * 100 + ${LIBXSLT_MICRO_VERSION}")
+set(LIBXSLT_VERSION_EXTRA "")
+
+set(LIBEXSLT_DOTTED_VERSION ${LIBEXSLT_MAJOR_VERSION}.${LIBEXSLT_MINOR_VERSION}.${LIBEXSLT_MICRO_VERSION})
+math(EXPR LIBEXSLT_VERSION_NUMBER "${LIBEXSLT_MAJOR_VERSION} * 10000 + ${LIBEXSLT_MINOR_VERSION} * 100 + ${LIBEXSLT_MICRO_VERSION}")
+set(LIBEXSLT_VERSION_EXTRA "")
+
+set(VERSION ${LIBXSLT_DOTTED_VERSION})
+set(LIBEXSLT_VERSION ${LIBEXSLT_DOTTED_VERSION})
+
+project(libxslt1 VERSION ${VERSION} LANGUAGES C)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -8,11 +28,14 @@ include(CheckCSourceCompiles)
 include(CheckFunctionExists)
 include(CheckIncludeFiles)
 include(CheckLibraryExists)
+include(CheckLinkerFlag)
 include(CheckSymbolExists)
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
-find_package(LibXml2 CONFIG REQUIRED)
+if(NOT TARGET LibXml2)
+	find_package(LibXml2 CONFIG REQUIRED)
+endif()
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(LIBXSLT_WITH_DEBUGGER "Add the debugging support" ON)
@@ -26,6 +49,10 @@ option(LIBXSLT_WITH_THREADS "Add multithread support" ON)
 set(LIBXSLT_WITH_TRIO OFF)
 option(LIBXSLT_WITH_XSLT_DEBUG "Add the debugging code" ON)
 
+if(NOT BUILD_SHARED_LIBS)
+	set(LIBXSLT_WITH_MODULES OFF)
+endif()
+
 if(LIBXSLT_WITH_CRYPTO AND NOT WIN32)
 	find_package(Gcrypt REQUIRED)
 endif()
@@ -33,7 +60,7 @@ endif()
 if(LIBXSLT_WITH_PYTHON)
 	check_include_files(unistd.h HAVE_UNISTD_H)
 	check_symbol_exists(F_GETFL fcntl.h HAVE_F_GETFL)
-	if(HAVE_UNISTD_H AND HAVE_F_GETFL)
+	if(WIN32 OR (HAVE_UNISTD_H AND HAVE_F_GETFL))
 		find_package(Python COMPONENTS Interpreter Development REQUIRED)
 	else()
 		find_package(Python2 COMPONENTS Interpreter Development REQUIRED)
@@ -41,7 +68,8 @@ if(LIBXSLT_WITH_PYTHON)
 		set(Python_EXECUTABLE ${Python2_EXECUTABLE})
 		set(Python_SITEARCH ${Python2_SITEARCH})
 	endif()
-	set(LIBXSLT_PYTHON_INSTALL_DIR ${Python_SITEARCH} CACHE PATH "Python bindings install directory")
+	#set(LIBXSLT_PYTHON_INSTALL_DIR ${Python_SITEARCH} CACHE PATH "Python bindings install directory")
+	set(LIBXSLT_PYTHON_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/python" CACHE PATH "Python bindings install directory")
 endif()
 
 if(LIBXSLT_WITH_THREADS)
@@ -55,25 +83,6 @@ foreach(VARIABLE IN ITEMS WITH_CRYPTO WITH_DEBUGGER WITH_MEM_DEBUG WITH_MODULES 
 		set(${VARIABLE} 0)
 	endif()
 endforeach()
-
-set(LIBEXSLT_MAJOR_VERSION 0)
-set(LIBEXSLT_MINOR_VERSION 8)
-set(LIBEXSLT_MICRO_VERSION 20)
-
-set(LIBEXSLT_DOTTED_VERSION ${LIBEXSLT_MAJOR_VERSION}.${LIBEXSLT_MINOR_VERSION}.${LIBEXSLT_MICRO_VERSION})
-math(EXPR LIBEXSLT_VERSION_NUMBER "${LIBEXSLT_MAJOR_VERSION} * 10000 + ${LIBEXSLT_MINOR_VERSION} * 100 + ${LIBEXSLT_MICRO_VERSION}")
-set(LIBEXSLT_VERSION_EXTRA "")
-
-set(LIBXSLT_MAJOR_VERSION ${PROJECT_VERSION_MAJOR})
-set(LIBXSLT_MINOR_VERSION ${PROJECT_VERSION_MINOR})
-set(LIBXSLT_MICRO_VERSION ${PROJECT_VERSION_PATCH})
-
-set(LIBXSLT_DOTTED_VERSION "${LIBXSLT_MAJOR_VERSION}.${LIBXSLT_MINOR_VERSION}.${LIBXSLT_MICRO_VERSION}")
-math(EXPR LIBXSLT_VERSION_NUMBER "${LIBXSLT_MAJOR_VERSION} * 10000 + ${LIBXSLT_MINOR_VERSION} * 100 + ${LIBXSLT_MICRO_VERSION}")
-set(LIBXSLT_VERSION_EXTRA "")
-
-set(VERSION ${LIBXSLT_DOTTED_VERSION})
-set(LIBEXSLT_VERSION ${LIBEXSLT_DOTTED_VERSION})
 
 set(MODULE_EXTENSION "${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
@@ -197,6 +206,21 @@ if(NOT BUILD_SHARED_LIBS)
 	target_compile_definitions(LibXslt INTERFACE LIBXSLT_STATIC)
 endif()
 
+if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow \
+-Wpointer-arith -Wcast-align -Wwrite-strings -Waggregate-return \
+-Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline \
+-Wredundant-decls -Wno-long-long -Wno-format-extra-args")
+
+	if(BUILD_SHARED_LIBS AND UNIX AND NOT APPLE)
+		check_linker_flag(C "LINKER:--undefined-version" FLAG_UNDEFINED_VERSION)
+		if (FLAG_UNDEFINED_VERSION)
+			target_link_options(LibXslt PRIVATE "LINKER:--undefined-version")
+		endif()
+		target_link_options(LibXslt PRIVATE "LINKER:--version-script=${CMAKE_CURRENT_SOURCE_DIR}/libxslt/libxslt.syms")
+	endif()
+endif()
+
 target_include_directories(
 	LibXslt
 	PUBLIC
@@ -220,6 +244,7 @@ set_target_properties(
 	POSITION_INDEPENDENT_CODE ON
 	PREFIX lib
 	VERSION ${PROJECT_VERSION}
+	SOVERSION ${LIBXSLT_MAJOR_VERSION}
 )
 
 if(MSVC)
@@ -297,6 +322,11 @@ if(LIBXSLT_WITH_CRYPTO AND NOT WIN32)
 	set(LIBGCRYPT_LIBS "-lgcrypt")
 endif()
 
+if(UNIX)
+	target_link_libraries(LibExslt PRIVATE m)
+	set(LIBM "-lm")
+endif()
+
 target_link_libraries(LibExslt PUBLIC LibXslt LibXml2::LibXml2)
 
 set_target_properties(
@@ -307,6 +337,7 @@ set_target_properties(
 	POSITION_INDEPENDENT_CODE ON
 	PREFIX lib
 	VERSION ${LIBEXSLT_VERSION}
+	SOVERSION ${LIBEXSLT_MAJOR_VERSION}
 )
 
 if(MSVC)
@@ -350,10 +381,39 @@ install(TARGETS xsltproc EXPORT LibXslt RUNTIME DESTINATION ${CMAKE_INSTALL_BIND
 
 if(LIBXSLT_WITH_TESTS)
 	enable_testing()
+
+	add_executable(runtest tests/runtest.c)
+	target_link_libraries(runtest LibXslt LibExslt)
+	add_test(
+		NAME runtest COMMAND runtest
+		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+	)
+
+	if (LIBXSLT_WITH_MODULES)
+		add_library(testplugin SHARED tests/testplugin.c)
+		target_link_libraries(testplugin LibExslt LibXslt)
+		set_target_properties(
+			testplugin PROPERTIES
+			PREFIX ""
+			OUTPUT_NAME xmlsoft_org_xslt_testplugin
+		)
+		# There must be an easier way...
+		get_cmake_property(MULTI_CONFIG GENERATOR_IS_MULTI_CONFIG)
+		if (MULTI_CONFIG)
+			set(PLUGINS_PATH ${PROJECT_BINARY_DIR}/$<CONFIG>)
+		else()
+			set(PLUGINS_PATH ${PROJECT_BINARY_DIR})
+		endif()
+		set_tests_properties(
+			runtest PROPERTIES
+			ENVIRONMENT LIBXSLT_PLUGINS_PATH=${PLUGINS_PATH}
+		)
+	endif()
+
 	if(Threads_FOUND)
 		add_executable(testThreads xsltproc/testThreads.c)
 		target_link_libraries(testThreads LibXslt LibExslt Threads::Threads)
-		add_test(NAME testThreads COMMAND testThreads WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+		add_test(NAME testThreads COMMAND testThreads)
 	endif()
 endif()
 
@@ -397,6 +457,9 @@ if(LIBXSLT_WITH_PYTHON)
 		PREFIX lib
 		VERSION ${PROJECT_VERSION}
 	)
+	if (WIN32)
+		set_target_properties(LibXsltMod PROPERTIES SUFFIX ".pyd")
+	endif()
 	install(
 		TARGETS	LibXsltMod
 		ARCHIVE DESTINATION ${LIBXSLT_PYTHON_INSTALL_DIR} COMPONENT development
@@ -457,7 +520,7 @@ set(XSLT_PRIVATE_LIBS "${LIBM}")
 
 set(EXSLT_INCLUDEDIR "-I\${includedir}")
 set(EXSLT_LIBDIR "-L\${libdir}")
-set(EXSLT_PRIVATE_LIBS "${XSLT_PRIVATE_LIBS} ${LIBGCRYPT_LIBS}")
+set(EXSLT_PRIVATE_LIBS "${XSLT_PRIVATE_LIBS} ${LIBGCRYPT_LIBS} ${LIBM}")
 
 file(RELATIVE_PATH PACKAGE_RELATIVE_PATH "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig" "${CMAKE_INSTALL_PREFIX}")
 string(REGEX REPLACE "/$" "" PACKAGE_RELATIVE_PATH "${PACKAGE_RELATIVE_PATH}")

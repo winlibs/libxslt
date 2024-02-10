@@ -3,7 +3,7 @@
 libxslt is the XSLT C parser and toolkit developed for the Gnome project from
 [http://xmlsoft.org/XSLT/](http://xmlsoft.org/XSLT/)
 
-PHP currently uses version 1.1.27 released 2012.09.12
+PHP currently uses version 1.1.39.
 
 # Building for PHP
 

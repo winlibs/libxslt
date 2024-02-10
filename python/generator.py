@@ -136,13 +136,6 @@ def enum(type, name, value):
 #######################################################################
 
 skipped_modules = {
-    'xmlmemory': None,
-    'DOCBparser': None,
-    'SAX': None,
-    'hash': None,
-    'list': None,
-    'threads': None,
-    'xpointer': None,
     'transform': None,
 }
 skipped_types = {
@@ -155,6 +148,15 @@ skipped_types = {
     'xmlListPtr': "internal representation not suitable for python",
     'xmlBufferPtr': "internal representation not suitable for python",
     'FILE *': None,
+}
+skipped_functions = {
+    'xsltMatchPattern': True,
+    # Debugger
+    'xslAddCall': True,
+    'xslDropCall': True,
+    'xslHandleDebugger': True,
+    'xsltSetDebuggerCallbacks': True,
+    'xsltSetDebuggerStatus': True,
 }
 
 #######################################################################
@@ -247,12 +249,8 @@ unknown_types = {}
 #######################################################################
 
 def skip_function(name):
-    if name[0:12] == "xmlXPathWrap":
+    if name in skipped_functions:
         return 1
-    if name == "xsltMatchPattern":
-        return 1
-#    if name[0:11] == "xmlXPathNew":
-#        return 1
     return 0
 
 def print_function_wrapper(name, output, export, include):
@@ -453,12 +451,12 @@ def buildStubs():
     export.close()
     wrapper.close()
 
-    print("Generated %d wrapper functions, %d failed, %d skipped\n" % (nb_wrap,
+    print("Generated %d wrapper functions, %d failed, %d skipped" % (nb_wrap,
                                                               failed, skipped))
-    print("Missing type converters:")
-    for type in list(unknown_types.keys()):
-        print("%s:%d " % (type, len(unknown_types[type])))
-    print()
+#    print("Missing type converters:")
+#    for type in list(unknown_types.keys()):
+#        print("%s:%d " % (type, len(unknown_types[type])))
+#    print()
 
 #######################################################################
 #
