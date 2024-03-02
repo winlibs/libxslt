@@ -11,7 +11,10 @@
 
 /* snprintf emulation taken from http://stackoverflow.com/a/8712996/1956010 */
 #if defined(_MSC_VER) && _MSC_VER < 1900
-
+#if _MSC_VER < 1500
+#define snprintf _snprintf
+#define vsnprintf(b,c,f,a) _vsnprintf(b,c,f,a)
+#else
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -41,7 +44,7 @@ __inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
 
     return count;
 }
-
+#endif /* _MSC_VER < 1500 */
 #endif /* defined(_MSC_VER) && _MSC_VER < 1900 */
 
 #define HAVE_SYS_STAT_H
