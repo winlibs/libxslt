@@ -385,13 +385,15 @@ exsltFuncFunctionFunction (xmlXPathParserContextPtr ctxt, int nargs) {
     newBase = tctxt->varsNr;
     /* If there are any parameters */
     if (paramNode != NULL) {
-        args = (xmlXPathObjectPtr *) xmlMalloc(sizeof(*args) * nargs);
-        if (args == NULL)
-            goto error;
-        /* Fetch the stored argument values from the caller */
-	for (i = nargs - 1; i >= 0; i--) {
-            args[i] = valuePop(ctxt);
-	}
+        if (nargs > 0) {
+            args = (xmlXPathObjectPtr *) xmlMalloc(sizeof(*args) * nargs);
+            if (args == NULL)
+                goto error;
+            /* Fetch the stored argument values from the caller */
+            for (i = nargs - 1; i >= 0; i--) {
+                args[i] = valuePop(ctxt);
+            }
+        }
 
 	/*
 	 * Prepare to process params in reverse order.  First, go to
@@ -615,8 +617,13 @@ exsltFuncResultComp (xsltStylesheetPtr style, xmlNodePtr inst,
      * instanciation of a func:result element.
      */
     for (test = inst->parent; test != NULL; test = test->parent) {
-	if (IS_XSLT_ELEM(test) &&
-	    IS_XSLT_NAME(test, "stylesheet")) {
+	if (/* Traversal has reached the top-level document without
+         * finding a func:function ancestor. */
+        (test != NULL && test->type == XML_DOCUMENT_NODE) ||
+        /* Traversal reached a stylesheet-namespace node,
+         * and has left the function namespace. */
+        (IS_XSLT_ELEM(test) &&
+         IS_XSLT_NAME(test, "stylesheet"))) {
 	    xsltGenericError(xsltGenericErrorContext,
 			     "func:result element not a descendant "
 			     "of a func:function\n");
@@ -791,7 +798,11 @@ exsltFuncResultElem (xsltTransformContextPtr ctxt,
 			     "exsltFuncResultElem: ret == NULL\n");
 	    data->error = 1;
 	} else {
-	    ret->boolval = 0; /* Freeing is not handled there anymore */
+            /*
+             * This stops older libxml2 versions from freeing the nodes
+             * in the tree.
+             */
+	    ret->boolval = 0;
 	}
     } else {
 	/* If the func:result element has empty content and does not

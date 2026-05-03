@@ -16,6 +16,7 @@
   #define WIN32_LEAN_AND_MEAN
   #include <windows.h>
   #include <io.h>
+  #include <direct.h>
 #else
   #include <unistd.h>
   #include <glob.h>
@@ -190,27 +191,7 @@ testErrorHandler(void *ctx  ATTRIBUTE_UNUSED, const char *msg, ...) {
     testErrors[testErrorsSize] = 0;
 }
 
-static void XMLCDECL
-channel(void *ctx  ATTRIBUTE_UNUSED, const char *msg, ...) {
-    va_list args;
-    int res;
-
-    if (testErrorsSize >= 32768)
-        return;
-    va_start(args, msg);
-    res = vsnprintf(&testErrors[testErrorsSize],
-                    32768 - testErrorsSize,
-		    msg, args);
-    va_end(args);
-    if (testErrorsSize + res >= 32768) {
-        /* buffer is full */
-	testErrorsSize = 32768;
-	testErrors[testErrorsSize] = 0;
-    } else {
-        testErrorsSize += res;
-    }
-    testErrors[testErrorsSize] = 0;
-}
+#if LIBXML_VERSION < 21300
 
 /**
  * xmlParserPrintFileContext:
@@ -317,79 +298,79 @@ testStructuredErrorHandler(void *ctx ATTRIBUTE_UNUSED, const xmlError *err) {
         }
         if (input != NULL) {
             if (input->filename)
-                channel(data, "%s:%d: ", input->filename, input->line);
+                testErrorHandler(data, "%s:%d: ", input->filename, input->line);
             else if ((line != 0) && (domain == XML_FROM_PARSER))
-                channel(data, "Entity: line %d: ", input->line);
+                testErrorHandler(data, "Entity: line %d: ", input->line);
         }
     } else {
         if (file != NULL)
-            channel(data, "%s:%d: ", file, line);
+            testErrorHandler(data, "%s:%d: ", file, line);
         else if ((line != 0) && (domain == XML_FROM_PARSER))
-            channel(data, "Entity: line %d: ", line);
+            testErrorHandler(data, "Entity: line %d: ", line);
     }
     if (name != NULL) {
-        channel(data, "element %s: ", name);
+        testErrorHandler(data, "element %s: ", name);
     }
     if (code == XML_ERR_OK)
         return;
     switch (domain) {
         case XML_FROM_PARSER:
-            channel(data, "parser ");
+            testErrorHandler(data, "parser ");
             break;
         case XML_FROM_NAMESPACE:
-            channel(data, "namespace ");
+            testErrorHandler(data, "namespace ");
             break;
         case XML_FROM_DTD:
         case XML_FROM_VALID:
-            channel(data, "validity ");
+            testErrorHandler(data, "validity ");
             break;
         case XML_FROM_HTML:
-            channel(data, "HTML parser ");
+            testErrorHandler(data, "HTML parser ");
             break;
         case XML_FROM_MEMORY:
-            channel(data, "memory ");
+            testErrorHandler(data, "memory ");
             break;
         case XML_FROM_OUTPUT:
-            channel(data, "output ");
+            testErrorHandler(data, "output ");
             break;
         case XML_FROM_IO:
-            channel(data, "I/O ");
+            testErrorHandler(data, "I/O ");
             break;
         case XML_FROM_XINCLUDE:
-            channel(data, "XInclude ");
+            testErrorHandler(data, "XInclude ");
             break;
         case XML_FROM_XPATH:
-            channel(data, "XPath ");
+            testErrorHandler(data, "XPath ");
             break;
         case XML_FROM_XPOINTER:
-            channel(data, "parser ");
+            testErrorHandler(data, "parser ");
             break;
         case XML_FROM_REGEXP:
-            channel(data, "regexp ");
+            testErrorHandler(data, "regexp ");
             break;
         case XML_FROM_MODULE:
-            channel(data, "module ");
+            testErrorHandler(data, "module ");
             break;
         case XML_FROM_SCHEMASV:
-            channel(data, "Schemas validity ");
+            testErrorHandler(data, "Schemas validity ");
             break;
         case XML_FROM_SCHEMASP:
-            channel(data, "Schemas parser ");
+            testErrorHandler(data, "Schemas parser ");
             break;
         case XML_FROM_RELAXNGP:
-            channel(data, "Relax-NG parser ");
+            testErrorHandler(data, "Relax-NG parser ");
             break;
         case XML_FROM_RELAXNGV:
-            channel(data, "Relax-NG validity ");
+            testErrorHandler(data, "Relax-NG validity ");
             break;
         case XML_FROM_CATALOG:
-            channel(data, "Catalog ");
+            testErrorHandler(data, "Catalog ");
             break;
         case XML_FROM_C14N:
-            channel(data, "C14N ");
+            testErrorHandler(data, "C14N ");
             break;
         case XML_FROM_XSLT:
-            channel(data, "XSLT ");
+            testErrorHandler(data, "XSLT ");
             break;
         default:
             break;
@@ -398,16 +379,16 @@ testStructuredErrorHandler(void *ctx ATTRIBUTE_UNUSED, const xmlError *err) {
         return;
     switch (level) {
         case XML_ERR_NONE:
-            channel(data, ": ");
+            testErrorHandler(data, ": ");
             break;
         case XML_ERR_WARNING:
-            channel(data, "warning : ");
+            testErrorHandler(data, "warning : ");
             break;
         case XML_ERR_ERROR:
-            channel(data, "error : ");
+            testErrorHandler(data, "error : ");
             break;
         case XML_ERR_FATAL:
-            channel(data, "error : ");
+            testErrorHandler(data, "error : ");
             break;
     }
     if (code == XML_ERR_OK)
@@ -416,23 +397,23 @@ testStructuredErrorHandler(void *ctx ATTRIBUTE_UNUSED, const xmlError *err) {
         int len;
 	len = xmlStrlen((const xmlChar *)str);
 	if ((len > 0) && (str[len - 1] != '\n'))
-	    channel(data, "%s\n", str);
+	    testErrorHandler(data, "%s\n", str);
 	else
-	    channel(data, "%s", str);
+	    testErrorHandler(data, "%s", str);
     } else {
-        channel(data, "%s\n", "out of memory error");
+        testErrorHandler(data, "%s\n", "out of memory error");
     }
     if (code == XML_ERR_OK)
         return;
 
     if (ctxt != NULL) {
-        xmlParserPrintFileContextInternal(input, channel, data);
+        xmlParserPrintFileContextInternal(input, testErrorHandler, data);
         if (cur != NULL) {
             if (cur->filename)
-                channel(data, "%s:%d: \n", cur->filename, cur->line);
+                testErrorHandler(data, "%s:%d: \n", cur->filename, cur->line);
             else if ((line != 0) && (domain == XML_FROM_PARSER))
-                channel(data, "Entity: line %d: \n", cur->line);
-            xmlParserPrintFileContextInternal(cur, channel, data);
+                testErrorHandler(data, "Entity: line %d: \n", cur->line);
+            xmlParserPrintFileContextInternal(cur, testErrorHandler, data);
         }
     }
     if ((domain == XML_FROM_XPATH) && (err->str1 != NULL) &&
@@ -441,22 +422,35 @@ testStructuredErrorHandler(void *ctx ATTRIBUTE_UNUSED, const xmlError *err) {
 	xmlChar buf[150];
 	int i;
 
-	channel(data, "%s\n", err->str1);
+	testErrorHandler(data, "%s\n", err->str1);
 	for (i=0;i < err->int1;i++)
 	     buf[i] = ' ';
 	buf[i++] = '^';
 	buf[i] = 0;
-	channel(data, "%s\n", buf);
+	testErrorHandler(data, "%s\n", buf);
     }
 }
+
+#else /* LIBXML_VERSION */
+
+static void
+testStructuredErrorHandler(void *ctx ATTRIBUTE_UNUSED, const xmlError *err) {
+    xmlFormatError(err, testErrorHandler, NULL);
+}
+
+#endif /* LIBXML_VERSION */
 
 static void
 initializeLibxml2(void) {
     xmlInitParser();
-    xmlSetExternalEntityLoader(xmlNoNetExternalEntityLoader);
+    /* TODO: Update this code for the thread safe versions based on
+     * the xmlCtxtSetResourceLoader function
+     */
+    xmlSetExternalEntityLoader(xmlGetExternalEntityLoader());
     xmlSetGenericErrorFunc(NULL, testErrorHandler);
     xsltSetGenericErrorFunc(NULL, testErrorHandler);
-    xmlSetStructuredErrorFunc(NULL, testStructuredErrorHandler);
+    xmlSetStructuredErrorFunc(NULL,
+            (xmlStructuredErrorFunc) testStructuredErrorHandler);
     exsltRegisterAll();
     xsltRegisterTestModule();
     xsltMaxDepth = 200;
@@ -594,11 +588,34 @@ xsltTest(const char *filename, int options) {
 
     if (strcmp(filename, "./test-10-3.xsl") == 0) {
         void *locale = xsltNewLocale(BAD_CAST "de", 0);
+        xmlChar *str1, *str2;
+
         /* Skip test requiring "de" locale */
         if (locale == NULL)
             return(0);
+
+        /*
+         * Some C libraries like musl or older macOS don't support
+         * collation with locales.
+         */
+        str1 = xsltStrxfrm(locale, BAD_CAST "\xC3\xA4");
+        str2 = xsltStrxfrm(locale, BAD_CAST "b");
+        res = xmlStrcmp(str1, str2);
+        xmlFree(str1);
+        xmlFree(str2);
         xsltFreeLocale(locale);
+
+        if (res >= 0) {
+            fprintf(stderr, "Warning: Your C library doesn't seem to support "
+                    "collation with locales\n");
+            return(0);
+        }
     }
+
+#if LIBXML_VERSION < 21300
+    if (strcmp(filename, "./test_bad.xsl") == 0)
+        return(0);
+#endif
 
     styleDoc = xmlReadFile(filename, NULL, XSLT_PARSE_OPTIONS | options);
     style = xsltLoadStylesheetPI(styleDoc);
@@ -636,7 +653,7 @@ xsltTest(const char *filename, int options) {
         outDoc = xsltApplyStylesheet(style, doc, params);
         if (outDoc == NULL) {
             /* xsltproc compat */
-	    channel(NULL, "no result for %s\n", docFilename);
+	    testErrorHandler(NULL, "no result for %s\n", docFilename);
         } else {
             xsltSaveResultToString(&out, &outSize, outDoc, style);
             xmlFreeDoc(outDoc);
