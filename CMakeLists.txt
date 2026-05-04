@@ -169,6 +169,7 @@ set(
 	libxslt/security.h
 	libxslt/templates.h
 	libxslt/transform.h
+	libxslt/transformInternals.h
 	libxslt/variables.h
 	libxslt/xslt.h
 	${CMAKE_CURRENT_BINARY_DIR}/libxslt/xsltconfig.h
