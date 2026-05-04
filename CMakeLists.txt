@@ -38,16 +38,16 @@ if(NOT TARGET LibXml2)
 endif()
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
-option(LIBXSLT_WITH_DEBUGGER "Add the debugging support" ON)
+option(LIBXSLT_WITH_DEBUGGER "Add the debugging support" OFF)
 option(LIBXSLT_WITH_CRYPTO "Add crypto support to exslt" OFF)
-option(LIBXSLT_WITH_MEM_DEBUG "Add the memory debugging module" OFF)
-option(LIBXSLT_WITH_MODULES "Add the module support" ON)
+option(LIBXSLT_WITH_MODULES "Add plugin extension support" OFF)
 option(LIBXSLT_WITH_PROFILER "Add the profiling support" ON)
+option(LIBXSLT_WITH_PROGRAMS "Build programs" ON)
 option(LIBXSLT_WITH_PYTHON "Build Python bindings" ON)
 option(LIBXSLT_WITH_TESTS "Build tests" ON)
 option(LIBXSLT_WITH_THREADS "Add multithread support" ON)
 set(LIBXSLT_WITH_TRIO OFF)
-option(LIBXSLT_WITH_XSLT_DEBUG "Add the debugging code" ON)
+option(LIBXSLT_WITH_XSLT_DEBUG "Add the debugging code" OFF)
 
 if(NOT BUILD_SHARED_LIBS)
 	set(LIBXSLT_WITH_MODULES OFF)
@@ -55,6 +55,7 @@ endif()
 
 if(LIBXSLT_WITH_CRYPTO AND NOT WIN32)
 	find_package(Gcrypt REQUIRED)
+        set(HAVE_GCRYPT 1)
 endif()
 
 if(LIBXSLT_WITH_PYTHON)
@@ -76,7 +77,7 @@ if(LIBXSLT_WITH_THREADS)
 	find_package(Threads REQUIRED)
 endif()
 
-foreach(VARIABLE IN ITEMS WITH_CRYPTO WITH_DEBUGGER WITH_MEM_DEBUG WITH_MODULES WITH_PROFILER WITH_PYTHON WITH_TRIO WITH_XSLT_DEBUG)
+foreach(VARIABLE IN ITEMS WITH_CRYPTO WITH_DEBUGGER WITH_MODULES WITH_PROFILER WITH_PYTHON WITH_TRIO WITH_XSLT_DEBUG)
 	if(LIBXSLT_${VARIABLE})
 		set(${VARIABLE} 1)
 	else()
@@ -84,7 +85,9 @@ foreach(VARIABLE IN ITEMS WITH_CRYPTO WITH_DEBUGGER WITH_MEM_DEBUG WITH_MODULES 
 	endif()
 endforeach()
 
-set(MODULE_EXTENSION "${CMAKE_SHARED_LIBRARY_SUFFIX}")
+if(LIBXSLT_WITH_MODULES)
+    set(MODULE_EXTENSION "${CMAKE_SHARED_LIBRARY_SUFFIX}")
+endif()
 
 if(LIBXSLT_WITH_CRYPTO AND NOT WIN32)
 	list(APPEND CMAKE_REQUIRED_LIBRARIES Gcrypt::Gcrypt)
@@ -103,7 +106,6 @@ else()
 	endif()
 	check_function_exists(clock_gettime HAVE_CLOCK_GETTIME)
 	check_function_exists(ftime HAVE_FTIME)
-	check_library_exists(gcrypt gcry_control "gcrypt.h" HAVE_GCRYPT)
 	check_function_exists(gettimeofday HAVE_GETTIMEOFDAY)
 	check_function_exists(gmtime_r HAVE_GMTIME_R)
 	check_include_files(inttypes.h HAVE_INTTYPES_H)
@@ -230,6 +232,11 @@ target_include_directories(
 )
 
 target_link_libraries(LibXslt PUBLIC LibXml2::LibXml2)
+
+if(LIBXSLT_WITH_MODULES)
+	target_link_libraries(LibXslt PRIVATE ${CMAKE_DL_LIBS})
+	set(MODULE_LIBS ${CMAKE_DL_LIBS})
+endif()
 
 if(UNIX)
 	target_link_libraries(LibXslt PRIVATE m)
@@ -373,11 +380,13 @@ if(MSVC AND BUILD_SHARED_LIBS)
 	install(FILES $<TARGET_PDB_FILE:LibExslt> DESTINATION ${CMAKE_INSTALL_BINDIR} CONFIGURATIONS Debug RelWithDebInfo COMPONENT debug)
 endif()
 
-add_executable(xsltproc xsltproc/xsltproc.c)
-add_executable(LibXslt::xsltproc ALIAS xsltproc)
-target_include_directories(xsltproc PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
-target_link_libraries(xsltproc LibExslt LibXslt)
-install(TARGETS xsltproc EXPORT LibXslt RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT programs)
+if(LIBXSLT_WITH_PROGRAMS)
+	add_executable(xsltproc xsltproc/xsltproc.c)
+	add_executable(LibXslt::xsltproc ALIAS xsltproc)
+	target_include_directories(xsltproc PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+	target_link_libraries(xsltproc LibExslt LibXslt)
+	install(TARGETS xsltproc EXPORT LibXslt RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT programs)
+endif ()
 
 if(LIBXSLT_WITH_TESTS)
 	enable_testing()
@@ -391,7 +400,7 @@ if(LIBXSLT_WITH_TESTS)
 
 	if (LIBXSLT_WITH_MODULES)
 		add_library(testplugin SHARED tests/testplugin.c)
-		target_link_libraries(testplugin LibExslt LibXslt)
+		target_link_libraries(testplugin LibExslt LibXslt LibXml2::LibXml2)
 		set_target_properties(
 			testplugin PROPERTIES
 			PREFIX ""
@@ -435,7 +444,7 @@ if(LIBXSLT_WITH_PYTHON)
 	file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/libxslt.py.in "${LIBXSLTCLASS_PY}")
 	configure_file(${CMAKE_CURRENT_BINARY_DIR}/libxslt.py.in libxslt.py COPYONLY)
 	add_library(
-		LibXsltMod
+		LibXsltMod SHARED
 		libxslt-py.c
 		libxslt-py.h
 		python/libxml_wrap.h
@@ -474,7 +483,9 @@ endif()
 
 install(FILES libexslt/libexslt.3 DESTINATION ${CMAKE_INSTALL_MANDIR}/man3 COMPONENT documentation)
 install(FILES libxslt/libxslt.3 DESTINATION ${CMAKE_INSTALL_MANDIR}/man3 COMPONENT documentation)
-install(FILES doc/xsltproc.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 COMPONENT documentation)
+if(LIBXSLT_WITH_PROGRAMS)
+	install(FILES doc/xsltproc.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 COMPONENT documentation)
+endif()
 install(DIRECTORY doc/ DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/libxslt COMPONENT documentation PATTERN Makefile.* EXCLUDE)
 
 if(LIBXSLT_WITH_CRYPTO AND NOT WIN32)
@@ -495,7 +506,7 @@ install(
 write_basic_package_version_file(
 	${CMAKE_CURRENT_BINARY_DIR}/libxslt-config-version.cmake
 	VERSION ${PROJECT_VERSION}
-	COMPATIBILITY ExactVersion
+        COMPATIBILITY SameMajorVersion
 )
 
 install(
@@ -516,7 +527,7 @@ set(LIBXSLT_DEFAULT_PLUGINS_PATH "\${libdir}/libxslt-plugins")
 set(XSLT_INCLUDEDIR "-I\${includedir}")
 set(XSLT_LIBDIR "-L\${libdir}")
 set(XSLT_LIBS "-lxslt -lxml2")
-set(XSLT_PRIVATE_LIBS "${LIBM}")
+set(XSLT_PRIVATE_LIBS "${MODULE_LIBS} ${LIBM}")
 
 set(EXSLT_INCLUDEDIR "-I\${includedir}")
 set(EXSLT_LIBDIR "-L\${libdir}")
@@ -525,7 +536,11 @@ set(EXSLT_PRIVATE_LIBS "${XSLT_PRIVATE_LIBS} ${LIBGCRYPT_LIBS} ${LIBM}")
 file(RELATIVE_PATH PACKAGE_RELATIVE_PATH "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig" "${CMAKE_INSTALL_PREFIX}")
 string(REGEX REPLACE "/$" "" PACKAGE_RELATIVE_PATH "${PACKAGE_RELATIVE_PATH}")
 
-set(prefix "\${pcfiledir}/${PACKAGE_RELATIVE_PATH}")
+if(WIN32)
+    set(prefix "\${pcfiledir}/${PACKAGE_RELATIVE_PATH}")
+else()
+    set(prefix "${CMAKE_INSTALL_PREFIX}")
+endif()
 set(exec_prefix "\${prefix}")
 set(libdir "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
 set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
